@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { existingCenter } from "./MapContainer";
-import { useNavigate } from "react-router-dom";
 import InfoContainer from "./InfoContainer";
 
-let currentInfoWindow: any = null;
 export default function MarkerContainer({ mapRef, apiResponse }) {
-    const navigate = useNavigate();
     const [place, setPlace] = useState();
     
     useEffect(() => {
@@ -26,7 +23,7 @@ export default function MarkerContainer({ mapRef, apiResponse }) {
             marker.append(nameTag);
 
             marker.addListener('gmp-click', () => {
-                handleMarkerClick(mapRef, marker, place);
+                handleMarkerClick(place);
                 //handleDetailsView(place);
             });
 
@@ -40,13 +37,7 @@ export default function MarkerContainer({ mapRef, apiResponse }) {
         }
     });
 
-    function handleDetailsView(place) {
-        // navigate('/Details', {
-        //     state: place
-        // });
-    }
-
-    function handleMarkerClick(mapRef, marker, place) {
+    function handleMarkerClick(place) {
 
         // console.log(place);
         // const bounds = new window.google.maps.LatLngBounds();

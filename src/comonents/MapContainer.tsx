@@ -7,10 +7,11 @@ import MarkerContainer from "./MarkerContainer";
 
     let existingCenter = { lat: 0, lng: 0 };
 export default function MapContainer({ apiKey, coordinates }) {
-    const [apiResponse, setApiResponse] = useState();
-    const [mapRef, setMapRef] = useState();
-    const [userZoom, setUserZoom] = useState(16);
-    const [radius, setRadius] = useState(localStorage.getItem('salawat:radius') ?? 3000);
+    const [apiResponse, setApiResponse] = useState<any>(null);
+    const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
+    
+    const userZoom = 16;
+    const radius = 1000;
 
     const mapContainerStyle = {
         width: '100vw',
@@ -18,8 +19,10 @@ export default function MapContainer({ apiKey, coordinates }) {
     };
 
     if (mapRef) {
-        const newCenter = mapRef.getCenter();
-        existingCenter = { lat: newCenter.lat(), lng: newCenter.lng() };
+        const newCenter = (mapRef as google.maps.Map).getCenter();
+        if (newCenter) {
+            existingCenter = { lat: newCenter.lat(), lng: newCenter.lng() };
+        }
     }
     
     const options = useMemo(() => ({

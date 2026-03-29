@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import Modal from "./Modal";
 
 export default function InfoContainer({ place }) {
-    const [content, setContent] = useState();
+    const [content, setContent] = useState('');
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {

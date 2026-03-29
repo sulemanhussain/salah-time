@@ -3,12 +3,8 @@ import './App.css'
 import { LoadScript } from '@react-google-maps/api';
 import MapContainer from './comonents/MapContainer';
 
-let isLocationEnabled = true;
-
 function App() {
   const [coordinates, setCoordinates] = useState({});
-  const [libraries, setLibraries] = useState(["places", "marker"]);
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
   const messageRef = useRef("Loading....");
 
   useEffect(() => {
@@ -24,7 +20,6 @@ function App() {
         }));
 
       }, (error) => {
-        isLocationEnabled = false;
         switch (error.code) {
           case error.PERMISSION_DENIED:
             messageRef.current = "User denied the request for geolocation.";
@@ -49,13 +44,16 @@ function App() {
         coordinates 
         ?
         (
-          <LoadScript googleMapsApiKey={ apiKey } libraries={ libraries }>
-            <MapContainer apiKey={apiKey} coordinates={coordinates} />
+          <LoadScript googleMapsApiKey={ import.meta.env.VITE_GOOGLE_MAPS_API_KEY } libraries={ ["places", "marker"] }>
+            <MapContainer apiKey={ import.meta.env.VITE_GOOGLE_MAPS_API_KEY } coordinates={coordinates} />
           </LoadScript>
         )
         :
         (
-          <p>No map</p>
+          <>
+            <p>No map</p>
+            <p>{ messageRef.current }</p>
+          </>
         ) 
       }
     </div>
