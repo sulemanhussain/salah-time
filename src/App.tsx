@@ -1,62 +1,90 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
-import { LoadScript } from '@react-google-maps/api';
-import MapContainer from './comonents/MapContainer';
+import MapContainer from './components/MapContainer';
+import NavigationBar from './components/NavigationBar';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './components/Login';
+import Home from './components/Home';
+
+type Coordinates = { lat?: number; lng?: number };
+type GeolocationStatus = 'loading' | 'success' | 'error';
 
 function App() {
-  const [coordinates, setCoordinates] = useState({});
-  const messageRef = useRef("Loading....");
+  const [coordinates, setCoordinates] = useState<Coordinates>({});
+  const [geoStatus, setGeoStatus] = useState<GeolocationStatus>(
+    "geolocation" in navigator ? 'loading' : 'error'
+  );
+  const [geoError, setGeoError] = useState<string>(
+    "geolocation" in navigator ? '' : 'Geolocation is not supported by this browser.'
+  );
 
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition((position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-        
-        setCoordinates(prevCords => ({
-          ...prevCords,
-          lat: latitude,
-          lng: longitude
-        }));
-
-      }, (error) => {
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            messageRef.current = "User denied the request for geolocation.";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            messageRef.current = "Location information is unavailable.";
-            break;
-          case error.TIMEOUT:
-            messageRef.current = "The request to get user location timed out.";
-            break;
-        }
-      })
-    } else {
-      alert("Geolocation is not supported by this browser.");
-      messageRef.current = "Geolocation is not supported by this browser.";
+    if (!("geolocation" in navigator)) {
+      return;
     }
-  })
+
+    const watcher = navigator.geolocation.watchPosition(
+      (position) => {
+        setCoordinates({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setGeoStatus('success');
+        setGeoError('');
+      },
+      (error) => {
+        setGeoStatus('error');
+        const errorMessages: Record<number, string> = {
+          [GeolocationPositionError.PERMISSION_DENIED]: 'Location access denied. Please enable it in your browser settings.',
+          [GeolocationPositionError.POSITION_UNAVAILABLE]: 'Location information is unavailable.',
+          [GeolocationPositionError.TIMEOUT]: 'Location request timed out. Please try again.',
+        };
+        setGeoError(errorMessages[error.code] || 'Unable to retrieve location.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+
+    return () => navigator.geolocation.clearWatch(watcher);
+  }, []);
+
+  const hasCoordinates = typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number';
 
   return (
-    <div className='App'>
-      {
-        coordinates 
-        ?
-        (
-          <LoadScript googleMapsApiKey={ import.meta.env.VITE_GOOGLE_MAPS_API_KEY } libraries={ ["places", "marker"] }>
-            <MapContainer apiKey={ import.meta.env.VITE_GOOGLE_MAPS_API_KEY } coordinates={coordinates} />
-          </LoadScript>
-        )
-        :
-        (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/app" element={
+        geoStatus === 'success' && hasCoordinates ? (
           <>
-            <p>No map</p>
-            <p>{ messageRef.current }</p>
+            <MapContainer apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} coordinates={coordinates} />
+            <NavigationBar />
           </>
-        ) 
-      }
-    </div>
+        ) : (
+          <>
+            <div className='h-full flex flex-col items-center justify-center text-center text-gray-600'>
+              {geoStatus === 'loading' && (
+                <>
+                  <p className='text-xl font-semibold mb-2'>Loading location...</p>
+                  <p className='text-sm'>Please allow access to your location</p>
+                </>
+              )}
+              {geoStatus === 'error' && (
+                <>
+                  <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
+                  <p className='text-sm text-red-500'>{geoError}</p>
+                </>
+              )}
+            </div>
+            <NavigationBar />
+          </>
+        )
+      } />
+    </Routes>
   )
 }
 

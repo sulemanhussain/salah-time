@@ -1,59 +1,71 @@
-export const GetMapLocationInfo = async(apiKey, coordinates, radius) : Promise<any[]>  => {
+interface PlaceLocation {
+    lat: number;
+    lng: number;
+}
 
-    return new Promise((resolve, reject) => {
-        const pageToken = "";
-        const url = `/maps/api/place/nearbysearch/json?keyword=masjid&location=${coordinates.lat}%2C${coordinates.lng}&radius=${radius}&type=mosque&key=${apiKey}&pageToken=${pageToken}`
-        const xhr = new XMLHttpRequest();
+interface PlaceGeometry {
+    location: PlaceLocation;
+    viewport?: {
+        northeast: PlaceLocation;
+        southwest: PlaceLocation;
+    };
+}
 
-        xhr.open('GET', url, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+export interface MapPlace {
+    place_id: string;
+    name: string;
+    geometry: PlaceGeometry;
+    vicinity?: string;
+    rating?: number;
+    types?: string[];
+}
 
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    const data = JSON.parse(xhr.responseText);
-                    resolve(data.results);
-                } else {
-                    reject(new Error(`Request failed with status ${xhr.status}`));
-                }
-            }
-        };
+interface NearbySearchResponse {
+    results: MapPlace[];
+    next_page_token?: string;
+    status: string;
+}
 
-        xhr.onerror = () => {
-            reject(new Error("Network error"));
-        };
+export const GetMapLocationInfo = async(
+    apiKey: string,
+    coordinates: PlaceLocation,
+    radius: number
+): Promise<MapPlace[]> => {
+    if (!apiKey || !coordinates?.lat || !coordinates?.lng || radius <= 0) {
+        throw new Error('Invalid parameters: apiKey, coordinates, and radius are required');
+    }
 
-        xhr.send();
-    })
+    const params = new URLSearchParams({
+        keyword: 'masjid',
+        location: `${coordinates.lat},${coordinates.lng}`,
+        radius: String(radius),
+        type: 'mosque',
+        key: apiKey,
+    });
 
-        // try {
-        //    // console.log("fetch data method");
-        //     const pageToken = "";
+    const url = `/maps/api/place/nearbysearch/json?${params}`;
 
-        //     const url = `/maps/api/place/nearbysearch/json?keyword=masjid&location=${coordinates.lat}%2C${coordinates.lng}&radius=${radius}&type=mosque&key=${apiKey}&pageToken=${pageToken}`
-        //     const xhr = new XMLHttpRequest();
-        //     let results: any[];
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-        //     xhr.onreadystatechange = function () {
-        //         if (xhr.readyState === 4) {
-        //             if (xhr.status === 200) {
-        //                 const data = JSON.parse(xhr.responseText);
-        //                 results = data.results;
-        //                 return data;
-        //             } else {
-        //                 console.error(`HTTP error! Status: ${xhr.status}`);
-        //             }
-        //         }
-        //     };
-            
-        //     xhr.open('GET', url, true);
-        //     xhr.setRequestHeader('Content-Type', 'application/json');
-        //     xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
-        //     xhr.send();
-        //     return results;
-        // } catch (error) {
-        //     console.error('Error fetching nearby places:', error);
-        // }
-  };
+        const data: NearbySearchResponse = await response.json();
+
+        if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+            throw new Error(`Google Maps API error: ${data.status}`);
+        }
+
+        return data.results || [];
+    } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        throw error;
+    }
+};
