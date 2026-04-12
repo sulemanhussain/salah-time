@@ -1,6 +1,6 @@
-import { useEffect, useState, memo } from "react";
+import { useEffect, memo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import type { MapPlace } from "../data/Maps";
-import InfoContainer from "./InfoContainer";
 
 interface MarkerContainerProps {
     mapRef: google.maps.Map;
@@ -8,11 +8,11 @@ interface MarkerContainerProps {
 }
 
 function MarkerContainer({ mapRef, apiResponse }: MarkerContainerProps) {
-    const [place, setPlace] = useState<MapPlace | null>(null);
+    const navigate = useNavigate();
 
-    function handleMarkerClick(place: MapPlace) {
-        setPlace(place);
-    }
+    const handleMarkerClick = useCallback((place: MapPlace) => {
+        navigate('/mosque-details', { state: { place } });
+    }, [navigate]);
 
     useEffect(() => {
         if (!apiResponse || apiResponse.length === 0 || !mapRef) return;
@@ -57,14 +57,10 @@ function MarkerContainer({ mapRef, apiResponse }: MarkerContainerProps) {
         return () => {
             markers.forEach(marker => marker.map = null);
         };
-    }, [apiResponse, mapRef]);
+    }, [apiResponse, mapRef, handleMarkerClick]);
 
     
-    return (
-        <>
-            <InfoContainer place={place} />
-        </>
-    );
+    return null;
 }
 
 export default memo(MarkerContainer);
