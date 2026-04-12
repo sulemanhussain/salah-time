@@ -103,7 +103,12 @@ export default function InfoContainer({ place }) {
                 <div className="border-t border-gray-200"></div>
                 <div className="overflow-x-auto">
                   {isLoadingTimings ? (
-                    <p className="text-center py-4 text-gray-600">Loading prayer times...</p>
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <div className="mb-4">
+                        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                      </div>
+                      <p className="text-center text-gray-600 font-medium">Loading prayer times...</p>
+                    </div>
                   ) : prayerTimings ? (
                     <table className="w-full text-sm border-collapse">
                       <thead>
@@ -151,23 +156,27 @@ export default function InfoContainer({ place }) {
                   </p>
                 </div>
                 <div className="border-t border-gray-200"></div>
-                <div className='flex gap-3 justify-between'>
+                <div className='flex gap-3 justify-center'>
                     <button 
                       type='button' 
                       onClick={updateTimings} 
-                      className='px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 text-sm'
+                      className='px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 text-sm'
                     >
-                      Update Timings
+                      ✓ Update Timings
                     </button>
                     <button 
                       type='button' 
                       onClick={report} 
-                      className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 text-sm'
+                      className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 text-sm'
                     >
-                      Report Issue
+                      📞 Report Issue
                     </button>
                 </div>
-                <p className="text-xs text-gray-600 italic mt-3">You can contribute by updating salat timings if there's a mismatch.</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4">
+                  <p className="text-xs text-blue-800">
+                    <span className="font-semibold">💡 Help improve:</span> If you notice any timing differences, please use the Update Timings button to contribute accurate information for this mosque.
+                  </p>
+                </div>
             </div>
         );
     };
