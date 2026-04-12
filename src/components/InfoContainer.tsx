@@ -2,13 +2,58 @@ import { useEffect, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import Modal from "./Modal";
 import { createPortal } from "react-dom";
+import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
+import type { PrayerTime } from "../data/adaan-timings";
+
+// Helper function to add minutes to a time string
+const addMinutesToTime = (timeString: string, minutes: number): string => {
+    const [hours, mins] = timeString.split(':').map(Number);
+    let newMins = mins + minutes;
+    let newHours = hours;
+    
+    if (newMins >= 60) {
+        newHours += Math.floor(newMins / 60);
+        newMins = newMins % 60;
+        if (newHours >= 24) {
+            newHours = newHours % 24;
+        }
+    }
+    
+    return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
+};
 
 export default function InfoContainer({ place }) {
     const [closedPlaceId, setClosedPlaceId] = useState<string | null>(null);
     const [, startTransition] = useTransition();
+    const [prayerTimings, setPrayerTimings] = useState<PrayerTime | null>(null);
+    const [isLoadingTimings, setIsLoadingTimings] = useState(false);
 
+    // Fetch prayer timings when place changes
     useEffect(() => {
-        // Handle blur effect
+        if (place?.geometry?.location) {
+            setIsLoadingTimings(true);
+            const fetchTimings = async () => {
+                try {
+                    const coordinates = [
+                        {
+                            latitude: place.geometry.location.lat,
+                            longitude: place.geometry.location.lng,
+                        },
+                    ];
+                    const timings = await getPrayerTimings(coordinates);
+                    setPrayerTimings(timings.timings);
+                } catch (error) {
+                    console.error('Error fetching prayer timings:', error);
+                } finally {
+                    setIsLoadingTimings(false);
+                }
+            };
+            fetchTimings();
+        }
+    }, [place]);
+
+    // Handle blur effect
+    useEffect(() => {
         if (place) {
             document.getElementById("root")?.classList.add("blurEffect");
         } else {
@@ -57,22 +102,53 @@ export default function InfoContainer({ place }) {
                 </div>
                 <div className="border-t border-gray-200"></div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                        <tr className="bg-blue-50 border-b border-gray-200">
-                            <th className="px-4 py-3 text-left font-semibold text-gray-700"></th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-700">Adhan</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-700">Congregation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50"><td className="px-4 py-3 text-gray-700 font-bold">Fajr</td><td className="px-4 py-3 text-gray-700">05:10 am</td><td className="px-4 py-3 text-gray-700">05:30 am</td></tr>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50"><td className="px-4 py-3 text-gray-700 font-bold">Dhuhr</td><td className="px-4 py-3 text-gray-700">12:45 pm</td><td className="px-4 py-3 text-gray-700">01:10 pm</td></tr>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50"><td className="px-4 py-3 text-gray-700 font-bold">Asr</td><td className="px-4 py-3 text-gray-700">04:30 pm</td><td className="px-4 py-3 text-gray-700">04:50 pm</td></tr>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50"><td className="px-4 py-3 text-gray-700 font-bold">Maghrib</td><td className="px-4 py-3 text-gray-700">06:30 pm</td><td className="px-4 py-3 text-gray-700">06:30 pm</td></tr>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50"><td className="px-4 py-3 text-gray-700 font-bold">Isha</td><td className="px-4 py-3 text-gray-700">07:50 pm</td><td className="px-4 py-3 text-gray-700">08:15 pm</td></tr>
-                    </tbody>
-                  </table>
+                  {isLoadingTimings ? (
+                    <p className="text-center py-4 text-gray-600">Loading prayer times...</p>
+                  ) : prayerTimings ? (
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                          <tr className="bg-blue-50 border-b border-gray-200">
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700">Prayer</th>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700">Adhan</th>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700">Congregation</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="px-4 py-3 text-gray-700 font-bold">{PRAYER_NAMES.FAJR}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(prayerTimings.Fajr)}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(addMinutesToTime(prayerTimings.Fajr, 15))}</td>
+                          </tr>
+                          <tr className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="px-4 py-3 text-gray-700 font-bold">{PRAYER_NAMES.DHUHR}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(prayerTimings.Dhuhr)}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(addMinutesToTime(prayerTimings.Dhuhr, 15))}</td>
+                          </tr>
+                          <tr className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="px-4 py-3 text-gray-700 font-bold">{PRAYER_NAMES.ASR}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(prayerTimings.Asr)}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(addMinutesToTime(prayerTimings.Asr, 15))}</td>
+                          </tr>
+                          <tr className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="px-4 py-3 text-gray-700 font-bold">{PRAYER_NAMES.MAGHRIB}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(prayerTimings.Maghrib)}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(prayerTimings.Maghrib)}</td>
+                          </tr>
+                          <tr className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="px-4 py-3 text-gray-700 font-bold">{PRAYER_NAMES.ISHA}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(prayerTimings.Isha)}</td>
+                            <td className="px-4 py-3 text-gray-700">{formatPrayerTime(addMinutesToTime(prayerTimings.Isha, 15))}</td>
+                          </tr>
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="text-center py-4 text-gray-600">Unable to load prayer times</p>
+                  )}
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-2">
+                  <p className="text-xs text-yellow-800">
+                    <span className="font-semibold">⚠️ Disclaimer:</span> These prayer timings are calculated and might be slightly different from actual timings. Please verify with your local mosque for accurate schedules.
+                  </p>
                 </div>
                 <div className="border-t border-gray-200"></div>
                 <div className='flex gap-3 justify-between'>

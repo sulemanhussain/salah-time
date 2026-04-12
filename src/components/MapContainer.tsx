@@ -13,9 +13,11 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     const [apiResponse, setApiResponse] = useState<MapPlace[] | null>(null);
     const [existingCenter, setExistingCenter] = useState({ lat: 0, lng: 0 });
     const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
+    const [currentRadius, setCurrentRadius] = useState(1000);
+    const [isLoading, setIsLoading] = useState(false);
+    const [clickCount, setClickCount] = useState(0);
     
     const userZoom = 16;
-    const radius = 1000;
 
     const mapContainerStyle = {
         width: '100vw',
@@ -54,16 +56,36 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
                 map.setZoom(10);
             }
 
-            const response = await GetMapLocationInfo(apiKey, { lat: coordinates.lat!, lng: coordinates.lng! }, radius);
-            setApiResponse(response);
-
-            google.maps.event.addListener(map, 'zoom_changed', function() {
-                const newZoom = map.getZoom();
-                console.log(newZoom);
-            });
+            const response = await GetMapLocationInfo(apiKey, { lat: coordinates.lat!, lng: coordinates.lng! }, currentRadius);
+            console.log(response);
+            setApiResponse(response.results);
 
         } catch (error) {
             console.error('Error fetching nearby places:', error);
+        }
+    };
+
+    const handleLoadMore = async () => {
+        try {
+            setIsLoading(true);
+            const newRadius = currentRadius + 1000; // Increase radius by 1km
+            
+            const response = await GetMapLocationInfo(apiKey, { lat: coordinates.lat!, lng: coordinates.lng! }, newRadius);
+            console.log('Loaded more with radius:', newRadius, response);
+            
+            // Merge new results with existing ones
+            setApiResponse(prevResults => {
+                const existingIds = new Set(prevResults?.map(p => p.place_id) || []);
+                const newItems = response.results.filter(item => !existingIds.has(item.place_id));
+                return [...(prevResults || []), ...newItems];
+            });
+            
+            setCurrentRadius(newRadius);
+            setClickCount(prevCount => prevCount + 1);
+        } catch (error) {
+            console.error('Error loading more places:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -94,28 +116,39 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
 
     return (
         <>
-            <div className="container">
-                <GoogleMap
-                    mapContainerStyle={mapContainerStyle}
-                    onLoad={fetchData}
-                    options={options}>
-                    {coordinates?.lat && coordinates?.lng && (
-                        <>
-                            <Marker position={{ lat: coordinates.lat, lng: coordinates.lng }} key={102121}>
-                                <InfoWindow>
-                                    <label>I'm here</label>
-                                </InfoWindow>
-                            </Marker>
-                            <Circle center={{ lat: coordinates.lat, lng: coordinates.lng }} radius={1000} options={closedOption} />
-                            <Circle center={{ lat: coordinates.lat, lng: coordinates.lng }} radius={3000} options={middleOption} />
-                        </>
+            <div className="container relative w-full">
+                <div className="flex flex-col relative w-full h-screen">
+                    <GoogleMap
+                        mapContainerStyle={mapContainerStyle}
+                        onLoad={fetchData}
+                        options={options}>
+                        {coordinates?.lat && coordinates?.lng && (
+                            <>
+                                <Marker position={{ lat: coordinates.lat, lng: coordinates.lng }} key={102121}>
+                                    <InfoWindow>
+                                        <label>I'm here</label>
+                                    </InfoWindow>
+                                </Marker>
+                                <Circle center={{ lat: coordinates.lat, lng: coordinates.lng }} radius={currentRadius} options={closedOption} />
+                                <Circle center={{ lat: coordinates.lat, lng: coordinates.lng }} radius={currentRadius * 3} options={middleOption} />
+                            </>
+                        )}
+                        {apiResponse ? (
+                            <MarkerContainer mapRef={mapRef} apiResponse={apiResponse} />
+                        ) : (
+                            <label>Loading...</label>
+                        )}
+                    </GoogleMap>
+                    
+                    {clickCount < 1 && (
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={isLoading}
+                            className="absolute bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded shadow-lg bottom-[6rem]">
+                            {isLoading ? 'Loading...' : `Load More (${currentRadius}m)`}
+                        </button>
                     )}
-                    {apiResponse ? (
-                        <MarkerContainer mapRef={mapRef} apiResponse={apiResponse} />
-                    ) : (
-                        <label>Loading...</label>
-                    )}
-                </GoogleMap>
+                </div>
             </div>
         </>
     );
