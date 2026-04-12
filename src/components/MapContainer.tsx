@@ -13,7 +13,7 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     const [apiResponse, setApiResponse] = useState<MapPlace[] | null>(null);
     const [existingCenter, setExistingCenter] = useState({ lat: 0, lng: 0 });
     const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
-    const [currentRadius, setCurrentRadius] = useState(1000);
+    const [currentRadius, setCurrentRadius] = useState(500);
     const [isLoading, setIsLoading] = useState(false);
     const [clickCount, setClickCount] = useState(0);
     
@@ -21,7 +21,7 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
 
     const mapContainerStyle = {
         width: '100vw',
-        height: '90vh',
+        height: '95vh',
     };
     
     const options = useMemo(() => ({
