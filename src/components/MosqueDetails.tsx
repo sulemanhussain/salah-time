@@ -1,4 +1,3 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
 import type { PrayerTime } from "../data/adaan-timings";
@@ -9,7 +8,7 @@ const addMinutesToTime = (timeString: string, minutes: number): string => {
     const [hours, mins] = timeString.split(':').map(Number);
     let newMins = mins + minutes;
     let newHours = hours;
-    
+
     if (newMins >= 60) {
         newHours += Math.floor(newMins / 60);
         newMins = newMins % 60;
@@ -17,23 +16,13 @@ const addMinutesToTime = (timeString: string, minutes: number): string => {
             newHours = newHours % 24;
         }
     }
-    
+
     return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
 };
 
-export default function MosqueDetails() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const place = location.state?.place as MapPlace | undefined;
+export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [prayerTimings, setPrayerTimings] = useState<PrayerTime | null>(null);
     const [isLoadingTimings, setIsLoadingTimings] = useState(false);
-
-    // Redirect if no place data
-    useEffect(() => {
-        if (!place) {
-            navigate('/app');
-        }
-    }, [place, navigate]);
 
     // Fetch prayer timings
     useEffect(() => {
@@ -74,13 +63,6 @@ export default function MosqueDetails() {
             {/* Header */}
             <div className='bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 sticky top-0 z-10 shadow-lg'>
                 <div className='flex items-center gap-4 max-w-6xl mx-auto'>
-                    <button 
-                        onClick={() => navigate('/app')}
-                        className='flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition'
-                        title="Go back"
-                    >
-                        ← Back
-                    </button>
                     <div className='flex-1'>
                         <h1 className="text-3xl font-bold">{place.name}</h1>
                         <p className="text-blue-100 text-sm mt-1">{place.vicinity}</p>
@@ -90,11 +72,19 @@ export default function MosqueDetails() {
 
             {/* Content */}
             <div className='max-w-6xl mx-auto p-6 space-y-6'>
+
+                {/* Disclaimer */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-3">
+                    <p className="text-sm text-yellow-800">
+                        <span className="font-semibold">⚠️ Disclaimer:</span> These prayer timings are calculated and might be slightly different from actual timings. Please verify with your local mosque for accurate schedules.
+                    </p>
+                </div>
+
                 {/* Prayer Timings Section */}
                 <div className='bg-white rounded-lg shadow-md overflow-hidden'>
                     <div className='p-6'>
                         <h2 className='text-2xl font-bold text-gray-800 mb-6'>Prayer Times</h2>
-                        
+
                         {isLoadingTimings ? (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <div className="mb-4">
@@ -147,36 +137,29 @@ export default function MosqueDetails() {
                     </div>
                 </div>
 
-                {/* Disclaimer */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-3">
-                    <p className="text-sm text-yellow-800">
-                        <span className="font-semibold">⚠️ Disclaimer:</span> These prayer timings are calculated and might be slightly different from actual timings. Please verify with your local mosque for accurate schedules.
-                    </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex gap-3 justify-center flex-wrap'>
-                    <button 
-                        type='button' 
-                        onClick={updateTimings} 
-                        className='px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200'
-                    >
-                        ✓ Update Timings
-                    </button>
-                    <button 
-                        type='button' 
-                        onClick={report} 
-                        className='px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200'
-                    >
-                        📞 Report Issue
-                    </button>
-                </div>
-
                 {/* Help Box */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
                         <span className="font-semibold">💡 Help improve:</span> If you notice any timing differences, please use the Update Timings button to contribute accurate information for this mosque.
                     </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className='flex gap-3 justify-center flex-wrap'>
+                    <button
+                        type='button'
+                        onClick={updateTimings}
+                        className='px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200'
+                    >
+                        ✓ Update Timings
+                    </button>
+                    <button
+                        type='button'
+                        onClick={report}
+                        className='px-8 py-3 bg-red-400 hover:bg-red-500 text-white font-medium rounded-lg transition duration-200'
+                    >
+                        📞 Report Issue
+                    </button>
                 </div>
             </div>
         </div>

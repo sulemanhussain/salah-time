@@ -1,8 +1,9 @@
 import { Circle, GoogleMap, InfoWindow, Marker } from "@react-google-maps/api";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { GetMapLocationInfo } from "../data/Maps";
 import type { MapPlace } from "../data/Maps";
 import MarkerContainer from "./MarkerContainer";
+import BottomSheetContainer from "./BottomSheetContainer";
 
 interface Coordinates {
     lat?: number;
@@ -16,14 +17,16 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     const [currentRadius, setCurrentRadius] = useState(500);
     const [isLoading, setIsLoading] = useState(false);
     const [clickCount, setClickCount] = useState(0);
-    
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
+
     const userZoom = 16;
 
     const mapContainerStyle = {
         width: '100vw',
         height: '95vh',
     };
-    
+
     const options = useMemo(() => ({
         disableDefaultUI: true,
         clickableIcons: false,
@@ -42,12 +45,12 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     const fetchData = async (map) => {
         try {
             setMapRef(map);
-            
+
             if (map && coordinates?.lat && coordinates?.lng) {
                 const bounds = new window.google.maps.LatLngBounds();
                 const userPos = new window.google.maps.LatLng(coordinates.lat, coordinates.lng);
                 bounds.extend(userPos);
-                
+
                 if (existingCenter.lat !== coordinates.lat && existingCenter.lng !== coordinates.lng) {
                     map.setCenter(userPos);
                     map.fitBounds(bounds);
@@ -57,7 +60,7 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
             }
 
             const response = await GetMapLocationInfo(apiKey, { lat: coordinates.lat!, lng: coordinates.lng! }, currentRadius);
-            console.log(response);
+            // console.log(response);
             setApiResponse(response.results);
 
         } catch (error) {
@@ -69,17 +72,17 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
         try {
             setIsLoading(true);
             const newRadius = currentRadius + 1000; // Increase radius by 1km
-            
+
             const response = await GetMapLocationInfo(apiKey, { lat: coordinates.lat!, lng: coordinates.lng! }, newRadius);
             console.log('Loaded more with radius:', newRadius, response);
-            
+
             // Merge new results with existing ones
             setApiResponse(prevResults => {
                 const existingIds = new Set(prevResults?.map(p => p.place_id) || []);
                 const newItems = response.results.filter(item => !existingIds.has(item.place_id));
                 return [...(prevResults || []), ...newItems];
             });
-            
+
             setCurrentRadius(newRadius);
             setClickCount(prevCount => prevCount + 1);
         } catch (error) {
@@ -89,7 +92,7 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
         }
     };
 
-      const defaultOptions = {
+    const defaultOptions = {
         strokeOpacity: 0.5,
         strokeWeight: 1,
         clickable: false,
@@ -114,6 +117,14 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
         fillColor: "#fbc02d"
     };
 
+    const showDetails = useCallback(function showDetails(id: string) {
+        const place = apiResponse.find(p => p.place_id === id);
+        if (place) {
+            setSelectedPlace(place);
+            setIsOpen(true);
+        }
+    }, [apiResponse]);
+
     return (
         <>
             <div className="container relative w-full">
@@ -134,12 +145,12 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
                             </>
                         )}
                         {apiResponse ? (
-                            <MarkerContainer mapRef={mapRef} apiResponse={apiResponse} />
+                            <MarkerContainer mapRef={mapRef} apiResponse={apiResponse} showDetails={showDetails}/>
                         ) : (
                             <label>Loading...</label>
                         )}
                     </GoogleMap>
-                    
+
                     {clickCount < 1 && (
                         <button
                             onClick={handleLoadMore}
@@ -149,6 +160,7 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
                         </button>
                     )}
                 </div>
+                <BottomSheetContainer isOpen={isOpen} closeSheet={() => setIsOpen(false)} place={selectedPlace} />
             </div>
         </>
     );
