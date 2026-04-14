@@ -15,12 +15,12 @@ export default defineConfig({
     tailwindcss(),
     mkcert(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       // strategies: 'injectManifest',
       // srcDir: 'src',
       // filename: 'serviceWorker.ts',
       manifest: {
-        name: 'Salah Time',
+        name: 'Salah Time - Prayer Times Finder',
         short_name: 'SalahTime',
         description: 'A prayer time app with Google Maps integration',
         theme_color: '#ffffff',
@@ -30,12 +30,12 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'icons/icon-192x192.png',
+            src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232563eb' width='192' height='192'/><text x='96' y='130' font-size='80' font-weight='bold' fill='white' text-anchor='middle' font-family='system-ui'>S</text></svg>",
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'icons/icon-512x512.png',
+            src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%232563eb' width='512' height='512'/><text x='256' y='352' font-size='200' font-weight='bold' fill='white' text-anchor='middle' font-family='system-ui'>S</text></svg>",
             sizes: '512x512',
             type: 'image/png'
           }
