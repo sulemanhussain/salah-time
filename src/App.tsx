@@ -5,7 +5,6 @@ import NavigationBar from './components/NavigationBar';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Home from './components/Home';
-import MosqueDetails from './components/MosqueDetails';
 
 type Coordinates = { lat?: number; lng?: number };
 type GeolocationStatus = 'loading' | 'success' | 'error';
@@ -59,7 +58,6 @@ function App() {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
       <Route path="/home" element={<Home />} />
-      <Route path="/mosque-details" element={<MosqueDetails />} />
       <Route path="/app" element={
         geoStatus === 'success' && hasCoordinates ? (
           <>
