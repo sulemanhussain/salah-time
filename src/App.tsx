@@ -5,6 +5,7 @@ import NavigationBar from './components/NavigationBar';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Home from './components/Home';
+import LocationServiceOff from './components/LocationServiceOff';
 
 type Coordinates = { lat?: number; lng?: number };
 type GeolocationStatus = 'loading' | 'success' | 'error';
@@ -17,7 +18,31 @@ function App() {
   const [geoError, setGeoError] = useState<string>(
     "geolocation" in navigator ? '' : 'Geolocation is not supported by this browser.'
   );
+  const [permissionStatus, setPermissionStatus] = useState(null);
 
+ useEffect(() => {
+  const internval = setInterval(() => {
+    // Check if the Permissions API is supported
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        setPermissionStatus(result.state);
+
+        // Listen for future changes without reload
+        result.onchange = () => {
+          setPermissionStatus(result.state);
+          if (result.state === 'granted') {
+             // Logic to fetch location automatically when enabled
+             console.log(geoError);
+             clearInterval(internval); // Stop checking once permission is granted
+          }
+        };
+      });
+    }
+  }, 3000);
+
+  return () => clearInterval(internval);
+  }, []);
+  
   useEffect(() => {
     if (!("geolocation" in navigator)) {
       return;
@@ -49,7 +74,7 @@ function App() {
     );
 
     return () => navigator.geolocation.clearWatch(watcher);
-  }, []);
+  }, [permissionStatus]);
 
   const hasCoordinates = typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number';
 
@@ -75,8 +100,9 @@ function App() {
               )}
               {geoStatus === 'error' && (
                 <>
-                  <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
-                  <p className='text-sm text-red-500'>{geoError}</p>
+                  {/* <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
+                  <p className='text-sm text-red-500'>{geoError}</p> */}
+                  <LocationServiceOff />
                 </>
               )}
             </div>
