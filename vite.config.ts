@@ -15,7 +15,7 @@ export default defineConfig({
     tailwindcss(),
     mkcert(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       // strategies: 'injectManifest',
       // srcDir: 'src',
       // filename: 'serviceWorker.ts',
@@ -23,7 +23,7 @@ export default defineConfig({
         name: 'Salah Time - Prayer Times Finder',
         short_name: 'SalahTime',
         description: 'A prayer time app with Google Maps integration',
-        theme_color: '#ffffff',
+        theme_color: '#20afe3',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',
