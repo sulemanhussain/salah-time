@@ -15,6 +15,7 @@ export default function BottomSheetContainer({ isOpen, closeSheet, place }: { is
                        <MosqueDetails place={place} />
                     </Sheet.Content>
                 </Sheet.Container>
+                 <Sheet.Backdrop />
             </Sheet>
         </>
     )

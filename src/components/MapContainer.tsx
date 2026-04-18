@@ -152,12 +152,18 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
                     </GoogleMap>
 
                     {clickCount < 1 && (
-                        <button
-                            onClick={handleLoadMore}
-                            disabled={isLoading}
-                            className="absolute bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded shadow-lg bottom-[6rem]">
-                            {isLoading ? 'Loading...' : `Load More (${currentRadius}m)`}
-                        </button>
+                        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 flex justify-center px-4">
+                            <button
+                                onClick={handleLoadMore}
+                                disabled={isLoading}
+                                className="pointer-events-auto inline-flex items-center gap-3 rounded-2xl border border-sky-200/70 bg-white/95 px-4 py-3 text-sm font-semibold text-sky-700 shadow-[0_16px_35px_-18px_rgba(2,132,199,0.7)] backdrop-blur transition duration-200 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-white">
+                                    +
+                                </span>
+                                <span>{isLoading ? "Loading nearby mosques..." : `Load More (${currentRadius + 1000}m)`}</span>
+                            </button>
+                        </div>
                     )}
                 </div>
                 <BottomSheetContainer isOpen={isOpen} closeSheet={() => setIsOpen(false)} place={selectedPlace} />

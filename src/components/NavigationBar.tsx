@@ -1,27 +1,51 @@
 import { AiOutlineHome } from 'react-icons/ai';
 import { MdOutlineLocationOn } from 'react-icons/md';
 import { IoSettingsOutline } from 'react-icons/io5';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 export default function NavigationBar() {
+    const navItemBaseClass = "group relative flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-xs font-semibold transition duration-200";
+
     return (
-        <nav className='fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-inner'>
-        <div className='mx-auto flex max-w-md justify-between px-8 py-3'>
-          <Link to="/login" className='flex flex-col items-center text-gray-500 hover:text-blue-600'>
-            {/* <span className='text-2xl'>🏠</span> */}
-            <AiOutlineHome size={28} />
-            <span className='text-xs mt-1'>Home</span>
-          </Link>
-          <Link to="/home" className='flex flex-col items-center text-gray-500 hover:text-blue-600'>
-            {/* <span className='text-2xl'>📍</span> */}
-            <MdOutlineLocationOn size={28} />
-            <span className='text-xs mt-1'>Map</span>
-          </Link>
-          <button className='flex flex-col items-center text-gray-500 hover:text-blue-600'>
-            <IoSettingsOutline size={28}/>
-            <span className='text-xs mt-1'>Settings</span>
-          </button>
-        </div>
-      </nav>
+        <nav className='fixed bottom-4 left-0 right-0 z-40 px-3'>
+            <div className='mx-auto w-full max-w-md'>
+                <div className='relative overflow-hidden rounded-2xl border border-white/60 bg-white/85 p-2 shadow-[0_20px_45px_-22px_rgba(2,132,199,0.45)] backdrop-blur-xl'>
+                    <div className='pointer-events-none absolute -left-10 top-0 h-16 w-24 rounded-full bg-sky-100/70 blur-xl'></div>
+                    <div className='pointer-events-none absolute -right-8 bottom-0 h-14 w-24 rounded-full bg-cyan-100/70 blur-xl'></div>
+
+                    <div className='relative grid grid-cols-3 gap-1'>
+                        <NavLink
+                            to="/home"
+                            className={({ isActive }) =>
+                                `${navItemBaseClass} ${isActive ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-200" : "text-slate-500 hover:bg-slate-100/70 hover:text-sky-600"}`
+                            }
+                        >
+                            <AiOutlineHome size={22} />
+                            <span>Home</span>
+                        </NavLink>
+
+                        <NavLink
+                            to="/app"
+                            className={({ isActive }) =>
+                                `${navItemBaseClass} ${isActive ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-200" : "text-slate-500 hover:bg-slate-100/70 hover:text-sky-600"}`
+                            }
+                        >
+                            <MdOutlineLocationOn size={22} />
+                            <span>Map</span>
+                        </NavLink>
+
+                        <NavLink
+                            to="/settings"
+                            className={({ isActive }) =>
+                                `${navItemBaseClass} ${isActive ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-200" : "text-slate-500 hover:bg-slate-100/70 hover:text-sky-600"}`
+                            }
+                        >
+                            <IoSettingsOutline size={22} />
+                            <span>Settings</span>
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+        </nav>
     )
 }
