@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isAuthenticated, setAuthCookie } from "../utils/auth-cookie";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/app", { replace: true });
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -12,9 +19,13 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Login Data:", form);
-    // Simulate successful login
-    navigate("/app");
+
+    setAuthCookie({
+      email: form.email,
+      loggedInAt: new Date().toISOString(),
+    }, 7);
+
+    navigate("/app", { replace: true });
   };
 
 

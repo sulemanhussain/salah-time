@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react';
 import './App.css'
 import MapContainer from './components/MapContainer';
 import NavigationBar from './components/NavigationBar';
@@ -6,9 +7,23 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Home from './components/Home';
 import LocationServiceOff from './components/LocationServiceOff';
+import Settings from './components/Settings';
+import { isAuthenticated } from './utils/auth-cookie';
 
 type Coordinates = { lat?: number; lng?: number };
 type GeolocationStatus = 'loading' | 'success' | 'error';
+
+function RootRoute() {
+  return <Navigate to={isAuthenticated() ? "/app" : "/login"} replace />;
+}
+
+function LoginRoute() {
+  return isAuthenticated() ? <Navigate to="/app" replace /> : <Login />;
+}
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
+}
 
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({});
@@ -80,35 +95,52 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/home" element={<Home />} />
+      <Route path="/" element={<RootRoute />} />
+      <Route path="/login" element={<LoginRoute />} />
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/app" element={
-        geoStatus === 'success' && hasCoordinates ? (
-          <>
-            <MapContainer apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} coordinates={coordinates} />
-            <NavigationBar />
-          </>
-        ) : (
-          <>
-            <div className='h-full flex flex-col items-center justify-center text-center text-gray-600'>
-              {geoStatus === 'loading' && (
-                <>
-                  <p className='text-xl font-semibold mb-2'>Loading location...</p>
-                  <p className='text-sm'>Please allow access to your location</p>
-                </>
-              )}
-              {geoStatus === 'error' && (
-                <>
-                  {/* <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
-                  <p className='text-sm text-red-500'>{geoError}</p> */}
-                  <LocationServiceOff />
-                </>
-              )}
-            </div>
-            <NavigationBar />
-          </>
-        )
+        <ProtectedRoute>
+          {geoStatus === 'success' && hasCoordinates ? (
+            <>
+              <MapContainer apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} coordinates={coordinates} />
+              <NavigationBar />
+            </>
+          ) : (
+            <>
+              <div className='h-full flex flex-col items-center justify-center text-center text-gray-600'>
+                {geoStatus === 'loading' && (
+                  <>
+                    <p className='text-xl font-semibold mb-2'>Loading location...</p>
+                    <p className='text-sm'>Please allow access to your location</p>
+                  </>
+                )}
+                {geoStatus === 'error' && (
+                  <>
+                    {/* <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
+                    <p className='text-sm text-red-500'>{geoError}</p> */}
+                    <LocationServiceOff />
+                  </>
+                )}
+              </div>
+              <NavigationBar />
+            </>
+          )}
+        </ProtectedRoute>
       } />
     </Routes>
   )
