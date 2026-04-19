@@ -440,9 +440,9 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         <button
                             type='button'
                             onClick={updateTimings}
-                            className='group inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 px-5 py-4 text-white shadow-lg shadow-emerald-200 transition hover:from-emerald-700 hover:to-green-700'
+                            className='group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 py-4 text-white ring-1 ring-white/20 shadow-[0_18px_34px_-18px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_38px_-18px_rgba(14,116,144,0.95)] active:translate-y-0'
                         >
-                            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30'>
+                            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/25 ring-1 ring-white/40'>
                                 <FiEdit3 size={16} />
                             </span>
                             <span className="text-sm font-semibold">Update Timings</span>
@@ -450,12 +450,12 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         <button
                             type='button'
                             onClick={report}
-                            className='group inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 px-5 py-4 text-white shadow-lg shadow-rose-200 transition hover:from-rose-600 hover:to-orange-600'
+                            className='group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl border border-rose-200/90 bg-rose-400 px-5 py-4 text-rose-950 ring-1 ring-white/50 shadow-[0_18px_34px_-20px_rgba(244,63,94,0.65)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-500 hover:shadow-[0_22px_38px_-20px_rgba(244,63,94,0.75)] active:translate-y-0'
                         >
-                            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30'>
+                            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/70 ring-1 ring-rose-200'>
                                 <FiAlertTriangle size={16} />
                             </span>
-                            <span className="text-sm font-semibold">Report Timing Issue</span>
+                            <span className="text-sm font-semibold">Report Issue</span>
                         </button>
                     </div>
                 </div>

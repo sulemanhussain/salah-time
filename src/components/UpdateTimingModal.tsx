@@ -200,18 +200,18 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                         Tip: Congregation defaults to 15 minutes after Aadhan (except Maghrib).
                     </div>
 
-                    <div className="bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                         <div className="mx-auto flex max-w-5xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="h-11 rounded-xl border border-cyan-200 bg-white px-5 text-sm font-semibold text-cyan-900 transition hover:bg-cyan-50"
+                            className="h-11 rounded-xl border border-cyan-200 bg-white px-5 text-sm font-semibold text-cyan-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md active:translate-y-0"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="h-11 rounded-xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 text-sm font-semibold text-white shadow-lg shadow-cyan-200 transition hover:from-teal-800 hover:via-cyan-800 hover:to-sky-800"
+                            className="h-11 rounded-xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 text-sm font-semibold text-white ring-1 ring-white/20 shadow-[0_16px_30px_-16px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:from-teal-800 hover:via-cyan-800 hover:to-sky-800 hover:shadow-[0_20px_34px_-16px_rgba(14,116,144,0.95)] active:translate-y-0"
                         >
                             Save Updated Timings
                         </button>

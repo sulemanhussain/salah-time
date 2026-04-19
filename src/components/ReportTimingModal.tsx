@@ -146,19 +146,19 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                         </div>
                     </div>
 
-                    <div className="bottom-0 z-10 -mx-4 border-t border-rose-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-rose-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                         <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={isSubmitDisabled}
-                                className="h-11 rounded-xl bg-rose-400 px-5 text-sm font-semibold text-rose-950 shadow-lg shadow-rose-200 transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:bg-rose-100 disabled:text-rose-400 disabled:shadow-none"
+                                className="h-11 rounded-xl border border-rose-200 bg-rose-400 px-5 text-sm font-semibold text-rose-950 ring-1 ring-white/50 shadow-[0_16px_30px_-18px_rgba(244,63,94,0.65)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-500 hover:shadow-[0_20px_34px_-18px_rgba(244,63,94,0.75)] active:translate-y-0 disabled:cursor-not-allowed disabled:border-rose-100 disabled:bg-rose-100 disabled:text-rose-400 disabled:shadow-none"
                             >
                                 Submit Report
                             </button>
