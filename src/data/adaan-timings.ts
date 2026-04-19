@@ -15,6 +15,12 @@ export interface PrayerTime {
     Midnight: string;
 }
 
+export interface HijriDate {
+    day: string;
+    month: { number: number; en: string; ar: string };
+    year: string;
+}
+
 interface AladhanData {
     timings: PrayerTime;
     date: {
@@ -24,9 +30,12 @@ interface AladhanData {
             date: string;
             format: string;
         };
-        hijri: {
+        hijri: HijriDate & {
             date: string;
             format: string;
+            weekday: { en: string; ar: string };
+            designation: { abbreviated: string; expanded: string };
+            holidays: string[];
         };
     };
 }
@@ -41,6 +50,7 @@ interface PrayerTimings {
     date: string;
     timings: PrayerTime;
     timezone: string;
+    hijriDate: HijriDate;
 }
 
 /**
@@ -102,6 +112,11 @@ export const getPrayerTimings = async (
             date: data.data.date.readable,
             timings: data.data.timings,
             timezone: data.data.date.gregorian.format,
+            hijriDate: {
+                day: data.data.date.hijri.day,
+                month: data.data.date.hijri.month,
+                year: data.data.date.hijri.year,
+            },
         };
     } catch (error) {
         console.error('Error fetching prayer timings:', error);

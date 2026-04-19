@@ -1,7 +1,15 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { FiAlertTriangle, FiInfo, FiMessageSquare, FiX } from "react-icons/fi";
+import {
+    FiAlertTriangle,
+    FiCheckCircle,
+    FiFlag,
+    FiInfo,
+    FiMessageSquare,
+    FiSend,
+    FiX,
+} from "react-icons/fi";
 import Modal from "./Modal";
 
 interface ReportTimingModalProps {
@@ -11,24 +19,30 @@ interface ReportTimingModalProps {
 }
 
 const REPORT_REASONS = [
-    "Incorrect Aadhan time",
-    "Incorrect Congregation time",
-    "Missing prayer timing",
-    "Outdated mosque schedule",
-    "Mosque details mismatch",
-    "Other",
+    { id: "incorrect-adhan",        label: "Incorrect Aadhan time",      icon: "🕌" },
+    { id: "incorrect-congregation", label: "Incorrect Congregation time", icon: "🕋" },
+    { id: "missing-timing",         label: "Missing prayer timing",       icon: "⏰" },
+    { id: "outdated-schedule",      label: "Outdated mosque schedule",    icon: "📅" },
+    { id: "details-mismatch",       label: "Mosque details mismatch",     icon: "📍" },
+    { id: "other",                  label: "Other",                       icon: "💬" },
 ] as const;
 
+type ReasonId = typeof REPORT_REASONS[number]["id"];
+
 export default function ReportTimingModal({ isOpen, mosqueName, onClose }: ReportTimingModalProps) {
-    const closeButtonClassName =
-        "absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/75 text-slate-600 ring-1 ring-slate-200 backdrop-blur transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 sm:right-5 sm:top-5";
-    const [selectedReason, setSelectedReason] = useState<string>(REPORT_REASONS[0]);
+    const [selectedReason, setSelectedReason] = useState<ReasonId>(REPORT_REASONS[0].id);
     const [details, setDetails] = useState("");
     const MIN_DETAILS_LENGTH = 15;
     const detailsLength = details.trim().length;
     const remainingCharacters = 500 - details.length;
     const completionPercent = Math.min(100, Math.round((details.length / 500) * 100));
     const isSubmitDisabled = detailsLength < MIN_DETAILS_LENGTH;
+
+
+    const progressColor =
+        completionPercent >= 80 ? "bg-amber-400" :
+        completionPercent >= 30 ? "bg-rose-400" :
+        "bg-rose-300";
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -37,129 +51,170 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
             reason: selectedReason,
             details,
         });
+        onhandleClose();
+    }
+
+    function onhandleClose() {
+        setSelectedReason(REPORT_REASONS[0].id);
+        setDetails("");
         onClose();
     }
 
     return createPortal(
         <Modal isOpen={isOpen} fullPage>
-            <div className="relative min-h-full overflow-x-hidden bg-gradient-to-b from-rose-50/80 via-white to-rose-50/60 shadow-2xl">
-                <div className="pointer-events-none absolute -top-20 -right-12 h-44 w-44 rounded-full bg-rose-200/35 blur-2xl"></div>
-                <div className="pointer-events-none absolute top-12 -left-16 h-36 w-36 rounded-full bg-rose-100/45 blur-2xl"></div>
+            <div className="relative min-h-full overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-slate-50">
 
-                <div className="sticky top-0 z-20 border-b border-rose-300 bg-rose-200/95 px-5 pb-5 pt-6 text-slate-900 backdrop-blur shadow-[0_16px_36px_-24px_rgba(225,29,72,0.3)] sm:px-6">
+                {/* ── decorative blobs ── */}
+                <div className="pointer-events-none absolute -top-16 -right-10 h-52 w-52 rounded-full bg-rose-300/20 blur-3xl" />
+                <div className="pointer-events-none absolute top-32 -left-16 h-40 w-40 rounded-full bg-pink-200/25 blur-3xl" />
+
+                {/* ── header ── */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-rose-900 via-rose-800 to-pink-800 px-5 pb-6 pt-6 text-white shadow-[0_16px_40px_-20px_rgba(136,19,55,0.55)] sm:px-6">
+                    <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+                    <div className="pointer-events-none absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-rose-700/30 blur-2xl" />
+
                     <button
                         type="button"
-                        onClick={onClose}
-                        className={closeButtonClassName}
+                        onClick={onhandleClose}
                         aria-label="Close"
+                        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/35 sm:right-5 sm:top-5"
                     >
-                        <FiX size={18} />
+                        <FiX size={17} />
                     </button>
-                    <span className="inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-700 ring-1 ring-slate-200">
-                        Issue Report
-                    </span>
-                    <h3 className="mt-3 text-2xl font-extrabold leading-tight">Report Timing Issue</h3>
-                    <p className="mt-1 text-sm text-slate-600">Flag inaccurate timings so the community can review and correct them quickly.</p>
-                    <div className="mt-4 rounded-2xl border border-rose-300 bg-white/85 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500">Mosque</p>
-                        <p className="mt-1 break-words text-sm font-semibold text-slate-900 sm:text-base">{mosqueName}</p>
+
+                    <div className="relative">
+                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 ring-1 ring-white/30 shadow-lg">
+                            <FiFlag size={22} className="text-white" />
+                        </div>
+                        <h3 className="mt-2.5 text-2xl font-extrabold leading-tight tracking-tight">
+                            Report an Issue
+                        </h3>
+                        <p className="mt-1 text-sm text-rose-200">
+                            Help the community by flagging inaccurate timings for review.
+                        </p>
+
+                        <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-lg">
+                                🕌
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-rose-200">Reporting for</p>
+                                <p className="truncate text-sm font-bold text-white">{mosqueName}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 p-4 pb-24 sm:p-6 sm:pb-28">
+                {/* ── form ── */}
+                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
                     <div className="mx-auto max-w-3xl space-y-4">
-                        <div className="rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm">
-                            <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700">
-                                <FiAlertTriangle size={13} className="text-rose-400" />
-                                Report Guidance
-                            </p>
-                            <p className="mt-2 text-xs text-slate-600">
-                                Keep your report specific with clear timing details so updates can be verified faster.
-                            </p>
-                            <p className="mt-2 inline-flex items-start gap-1.5 text-xs text-slate-600">
-                                <FiInfo size={13} className="mt-0.5 shrink-0 text-slate-500" />
-                                <span>Mention both expected and currently shown times when possible.</span>
-                            </p>
-                        </div>
 
-                        <div className="rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 text-[11px] font-semibold text-rose-700">1</span>
-                                <p className="text-sm font-semibold text-slate-800">Select reason</p>
+                        {/* guidance */}
+                        <div className="flex gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3.5 shadow-sm">
+                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                                <FiInfo size={14} />
                             </div>
-                            <label className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reason</span>
-                                <select
-                                    value={selectedReason}
-                                    onChange={(event) => setSelectedReason(event.target.value)}
-                                    className="h-11 rounded-xl border border-rose-200 bg-white px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
-                                    required
-                                >
-                                    {REPORT_REASONS.map((reason) => (
-                                        <option key={reason} value={reason}>
-                                            {reason}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                        </div>
-
-                        <div className="rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 text-[11px] font-semibold text-rose-700">2</span>
-                                <p className="text-sm font-semibold text-slate-800">Add details</p>
-                            </div>
-                            <label className="flex flex-col gap-2">
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                    <FiMessageSquare size={12} />
-                                    Details
-                                </span>
-                                <textarea
-                                    value={details}
-                                    onChange={(event) => setDetails(event.target.value)}
-                                    rows={6}
-                                    maxLength={500}
-                                    placeholder="Explain what looks incorrect and include the expected timing if known."
-                                    className="min-h-36 rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
-                                    required
-                                />
-                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                                    <div
-                                        className="h-full rounded-full bg-rose-300 transition-all duration-300"
-                                        style={{ width: `${completionPercent}%` }}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="text-[11px] text-slate-400">
-                                        {details.length}/500 characters
-                                    </span>
-                                    <span className={`text-[11px] font-medium ${remainingCharacters < 80 ? "text-amber-600" : "text-slate-500"}`}>
-                                        {remainingCharacters} left
-                                    </span>
-                                </div>
-                                <p className={`text-[11px] ${isSubmitDisabled ? "text-slate-500" : "text-emerald-600"}`}>
-                                    {isSubmitDisabled
-                                        ? `Add at least ${MIN_DETAILS_LENGTH} characters to submit a meaningful report.`
-                                        : "Looks good. Your report is clear enough to submit."}
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Before you submit</p>
+                                <p className="mt-1 text-xs leading-relaxed text-amber-700">
+                                    Be specific — include both the expected and displayed times. Accurate reports get resolved faster.
                                 </p>
-                            </label>
+                            </div>
+                        </div>
+
+                        {/* step 1 — reason */}
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-rose-50/50 px-4 py-3">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-[11px] font-bold text-white shadow-sm shadow-rose-200">
+                                    1
+                                </span>
+                                <p className="text-sm font-bold text-slate-800">What's the issue?</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 p-4">
+                                {REPORT_REASONS.map((reason) => {
+                                    const active = selectedReason === reason.id;
+                                    return (
+                                        <button
+                                            key={reason.id}
+                                            type="button"
+                                            onClick={() => setSelectedReason(reason.id)}
+                                            className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-xs font-semibold transition-all duration-200 ${
+                                                active
+                                                    ? "border-rose-400 bg-rose-50 text-rose-800 shadow-sm shadow-rose-100 ring-1 ring-rose-300"
+                                                    : "border-slate-200 bg-slate-50 text-slate-600 hover:border-rose-200 hover:bg-rose-50/50"
+                                            }`}
+                                        >
+                                            <span className="text-base leading-none">{reason.icon}</span>
+                                            <span className="leading-snug">{reason.label}</span>
+                                            <FiCheckCircle size={13} className={`ml-auto shrink-0 transition-opacity duration-150 ${active ? "text-rose-500 opacity-100" : "opacity-0"}`} />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* step 2 — details */}
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-rose-50/50 px-4 py-3">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-[11px] font-bold text-white shadow-sm shadow-rose-200">
+                                    2
+                                </span>
+                                <p className="text-sm font-bold text-slate-800">Describe the issue</p>
+                            </div>
+                            <div className="p-4">
+                                <label className="flex flex-col gap-2">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <FiMessageSquare size={12} />
+                                        Details
+                                    </span>
+                                    <textarea
+                                        value={details}
+                                        onChange={(event) => setDetails(event.target.value)}
+                                        rows={5}
+                                        maxLength={500}
+                                        placeholder="Explain what looks incorrect. Include both the expected and currently shown time if possible."
+                                        className="min-h-32 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
+                                        required
+                                    />
+                                    <div className="space-y-1.5">
+                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
+                                                style={{ width: `${completionPercent}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className={`text-[11px] font-medium ${isSubmitDisabled ? "text-slate-400" : "text-emerald-600"}`}>
+                                                {isSubmitDisabled
+                                                    ? `${MIN_DETAILS_LENGTH - detailsLength} more characters needed`
+                                                    : "✓ Ready to submit"}
+                                            </p>
+                                            <span className={`text-[11px] font-medium tabular-nums ${remainingCharacters < 80 ? "text-amber-600" : "text-slate-400"}`}>
+                                                {details.length} / 500
+                                            </span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-rose-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+                    {/* ── footer ── */}
+                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                         <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
-                                onClick={onClose}
-                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
+                                onClick={onhandleClose}
+                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={isSubmitDisabled}
-                                className="h-11 rounded-xl border border-rose-200 bg-rose-400 px-5 text-sm font-semibold text-rose-950 ring-1 ring-white/50 shadow-[0_16px_30px_-18px_rgba(244,63,94,0.65)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-500 hover:shadow-[0_20px_34px_-18px_rgba(244,63,94,0.75)] active:translate-y-0 disabled:cursor-not-allowed disabled:border-rose-100 disabled:bg-rose-100 disabled:text-rose-400 disabled:shadow-none"
+                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-6 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(244,63,94,0.6)] ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:from-rose-600 hover:to-pink-600 hover:shadow-[0_12px_28px_-8px_rgba(244,63,94,0.7)] active:translate-y-0 disabled:cursor-not-allowed disabled:from-rose-200 disabled:to-pink-200 disabled:text-rose-400 disabled:shadow-none disabled:ring-0"
                             >
+                                <FiSend size={14} />
                                 Submit Report
                             </button>
                         </div>

@@ -106,7 +106,7 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                 <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-cyan-300/40 blur-2xl"></div>
                 <div className="pointer-events-none absolute top-10 -left-14 h-32 w-32 rounded-full bg-teal-200/50 blur-2xl"></div>
 
-                <div className="sticky top-0 z-20 border-b border-cyan-900/20 bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-5 pt-6 text-white shadow-[0_16px_36px_-24px_rgba(14,116,144,0.95)] sm:px-6">
+                <div className="top-0 z-20 border-b border-cyan-900/20 bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-5 pt-6 text-white shadow-[0_16px_36px_-24px_rgba(14,116,144,0.95)] sm:px-6">
                     <button
                         type="button"
                         onClick={onClose}
@@ -120,13 +120,18 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                     </span>
                     <h3 className="mt-3 text-2xl font-extrabold leading-tight">Update Salah Timings</h3>
                     <p className="mt-1 text-sm text-cyan-100">Review and submit corrected mosque timings for your local community.</p>
-                    <div className="mt-4 rounded-2xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-cyan-100">Mosque</p>
-                        <p className="mt-1 text-sm font-semibold text-white sm:text-base">{mosqueName}</p>
+                    <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-lg">
+                            🕌
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-cyan-100">Updating timings for</p>
+                            <p className="truncate text-sm font-bold text-white">{mosqueName}</p>
+                        </div>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 p-4 pb-24 sm:p-6 sm:pb-28">
+                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
                     <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 shadow-sm">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Before You Update</p>
                         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">

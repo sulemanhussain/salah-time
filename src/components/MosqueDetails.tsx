@@ -9,7 +9,7 @@ import {
     FiUsers,
 } from "react-icons/fi";
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
-import type { PrayerTime } from "../data/adaan-timings";
+import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
 import UpdateTimingModal from "./UpdateTimingModal";
 import ReportTimingModal from "./ReportTimingModal";
@@ -71,6 +71,7 @@ type PrayerRow = {
 
 export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [prayerTimings, setPrayerTimings] = useState<PrayerTime | null>(null);
+    const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
     const [isLoadingTimings, setIsLoadingTimings] = useState(false);
     const [timingsError, setTimingsError] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<"update" | "report" | null>(null);
@@ -91,6 +92,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                     ];
                     const timings = await getPrayerTimings(coordinates);
                     setPrayerTimings(timings.timings);
+                    setHijriDate(timings.hijriDate);
                 } catch (error) {
                     console.error('Error fetching prayer timings:', error);
                     setTimingsError("Unable to load timings right now. Please try again.");
@@ -284,8 +286,18 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
 
                     <div className='overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.55)] backdrop-blur'>
                         <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-cyan-50 p-5">
-                            <h2 className='text-xl font-bold text-slate-900 sm:text-2xl'>Prayer Times</h2>
-                            <p className="mt-1 text-sm text-slate-600">Aadhan and congregation times for {place.name}.</p>
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                    <h2 className='text-xl font-bold text-slate-900 sm:text-2xl'>Prayer Times</h2>
+                                    <p className="mt-1 text-sm text-slate-600">Aadhan and congregation times for {place.name}.</p>
+                                </div>
+                                {hijriDate && (
+                                    <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold text-cyan-700 shadow-sm">
+                                        <FiClock size={11} className="shrink-0" />
+                                        {hijriDate.day} {hijriDate.month.en} {hijriDate.year} AH
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <div className='space-y-3 p-4 sm:p-5'>
