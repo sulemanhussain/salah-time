@@ -13,6 +13,7 @@ import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
 import UpdateTimingModal from "./UpdateTimingModal";
 import ReportTimingModal from "./ReportTimingModal";
+import { isVolunteer } from "./Settings";
 
 // Helper function to add minutes to a time string
 const addMinutesToTime = (timeString: string, minutes: number): string => {
@@ -449,6 +450,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                     </div>
 
                     <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                        {isVolunteer() && (
                         <button
                             type='button'
                             onClick={updateTimings}
@@ -459,6 +461,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                             </span>
                             <span className="text-sm font-semibold">Update Timings</span>
                         </button>
+                        )}
                         <button
                             type='button'
                             onClick={report}

@@ -106,7 +106,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                 </div>
 
                 {/* ── form ── */}
-                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
+                <form onSubmit={handleSubmit} className="space-y-4 p-4 pb-40 sm:p-6">
                     <div className="mx-auto max-w-3xl space-y-4">
 
                         {/* guidance */}
