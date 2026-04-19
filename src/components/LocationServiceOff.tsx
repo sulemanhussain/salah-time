@@ -20,12 +20,6 @@ export default function LocationServiceOff() {
         });
     }, []);
 
-    const requestLocation = () => {
-        navigator.geolocation.getCurrentPosition(
-            () => window.location.reload(),
-            () => setStatus("denied")
-        );
-    };
     return (
         <>
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -58,13 +52,6 @@ export default function LocationServiceOff() {
 
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                        <button
-                            onClick={requestLocation}
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 rounded-lg transition"
-                        >
-                            Enable Location
-                        </button>
-
                         <button
                             onClick={() => window.location.reload()}
                             className="flex-1 border border-gray-300 hover:bg-gray-100 text-gray-700 text-sm font-medium py-2.5 rounded-lg transition"
