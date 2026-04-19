@@ -32,13 +32,92 @@ export interface PaginatedPlacesResponse {
     hasNextPage: boolean;
 }
 
+interface NearbyPlacesCacheEntry {
+    expiresAt: number;
+    varyBy: {
+        location: string;
+        radius: number;
+    };
+    payload: PaginatedPlacesResponse;
+}
+
+const MAPS_NEARBY_CACHE_PREFIX = 'maps-nearby-v1';
+const MAPS_NEARBY_CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+const hasLocalStorage = (): boolean => {
+    try {
+        return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+    } catch {
+        return false;
+    }
+};
+
+const normalizeCoordinate = (value: number): string => value.toFixed(5);
+
+const buildNearbyCacheKey = (coordinates: PlaceLocation, radius: number): string => {
+    const lat = normalizeCoordinate(coordinates.lat);
+    const lng = normalizeCoordinate(coordinates.lng);
+    // Explicit vary markers for location and radius
+    return `${MAPS_NEARBY_CACHE_PREFIX}:location=${lat},${lng}:radius=${radius}:type=mosque:keyword=masjid`;
+};
+
+const readNearbyCache = (cacheKey: string): PaginatedPlacesResponse | null => {
+    if (!hasLocalStorage()) return null;
+
+    try {
+        const raw = localStorage.getItem(cacheKey);
+        if (!raw) return null;
+
+        const parsed: NearbyPlacesCacheEntry = JSON.parse(raw);
+        if (!parsed?.expiresAt || !parsed?.payload) {
+            localStorage.removeItem(cacheKey);
+            return null;
+        }
+
+        if (Date.now() > parsed.expiresAt) {
+            localStorage.removeItem(cacheKey);
+            return null;
+        }
+
+        return parsed.payload;
+    } catch (error) {
+        console.warn('Failed to read maps nearby cache:', error);
+        return null;
+    }
+};
+
+const writeNearbyCache = (cacheKey: string, coordinates: PlaceLocation, radius: number, payload: PaginatedPlacesResponse): void => {
+    if (!hasLocalStorage()) return;
+
+    try {
+        const entry: NearbyPlacesCacheEntry = {
+            expiresAt: Date.now() + MAPS_NEARBY_CACHE_TTL_MS,
+            varyBy: {
+                location: `${normalizeCoordinate(coordinates.lat)},${normalizeCoordinate(coordinates.lng)}`,
+                radius,
+            },
+            payload,
+        };
+
+        localStorage.setItem(cacheKey, JSON.stringify(entry));
+    } catch (error) {
+        console.warn('Failed to write maps nearby cache:', error);
+    }
+};
+
 export const GetMapLocationInfo = async(
     apiKey: string,
     coordinates: PlaceLocation,
     radius: number
 ): Promise<PaginatedPlacesResponse> => {
-    if (!apiKey || !coordinates?.lat || !coordinates?.lng || radius <= 0) {
+    if (!apiKey || !coordinates || !Number.isFinite(coordinates.lat) || !Number.isFinite(coordinates.lng) || radius <= 0) {
         throw new Error('Invalid parameters: apiKey, coordinates, and radius are required');
+    }
+
+    const cacheKey = buildNearbyCacheKey(coordinates, radius);
+    const cachedResponse = readNearbyCache(cacheKey);
+    if (cachedResponse) {
+        return cachedResponse;
     }
 
     const params = new URLSearchParams({
@@ -69,11 +148,14 @@ export const GetMapLocationInfo = async(
             throw new Error(`Google Maps API error: ${data.status}`);
         }
 
-        return {
+        const payload: PaginatedPlacesResponse = {
             results: data.results || [],
             nextPageToken: data.next_page_token,
             hasNextPage: !!data.next_page_token,
         };
+
+        writeNearbyCache(cacheKey, coordinates, radius, payload);
+        return payload;
     } catch (error) {
         console.error('Error fetching nearby places:', error);
         throw error;
