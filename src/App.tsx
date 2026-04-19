@@ -9,6 +9,7 @@ import Home from './components/Home';
 import LocationServiceOff from './components/LocationServiceOff';
 import Settings from './components/Settings';
 import { isAuthenticated } from './utils/auth-cookie';
+import { FiCompass, FiMapPin } from 'react-icons/fi';
 
 type Coordinates = { lat?: number; lng?: number };
 type GeolocationStatus = 'loading' | 'success' | 'error';
@@ -122,12 +123,32 @@ function App() {
             </>
           ) : (
             <>
-              <div className='h-full flex flex-col items-center justify-center text-center text-gray-600'>
+              <div className='min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 flex flex-col items-center justify-center px-4 pb-24'>
                 {geoStatus === 'loading' && (
-                  <>
-                    <p className='text-xl font-semibold mb-2'>Loading location...</p>
-                    <p className='text-sm'>Please allow access to your location</p>
-                  </>
+                  <div className='relative w-full max-w-md overflow-hidden rounded-3xl border border-cyan-100 bg-white/90 p-6 text-center shadow-[0_24px_50px_-24px_rgba(8,145,178,0.55)] backdrop-blur-xl'>
+                    <div className='pointer-events-none absolute -left-10 top-0 h-24 w-24 rounded-full bg-cyan-100/70 blur-2xl'></div>
+                    <div className='pointer-events-none absolute -right-10 bottom-0 h-24 w-24 rounded-full bg-teal-100/70 blur-2xl'></div>
+
+                    <div className='relative mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-teal-600 via-cyan-600 to-sky-600 text-white shadow-lg shadow-cyan-200'>
+                      <FiMapPin size={22} />
+                      <span className='absolute inline-flex h-full w-full animate-ping rounded-full border border-cyan-300/60'></span>
+                    </div>
+
+                    <p className='text-xl font-bold text-slate-800'>Locating your position...</p>
+                    <p className='mt-2 text-sm text-slate-600'>
+                      Please allow location access so we can show nearby mosques accurately.
+                    </p>
+
+                    <div className='mt-5 rounded-xl border border-cyan-100 bg-gradient-to-r from-cyan-50 to-teal-50 px-3 py-2 text-left'>
+                      <p className='inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-cyan-700'>
+                        <FiCompass size={12} />
+                        In Progress
+                      </p>
+                      <p className='mt-1 text-xs text-slate-600'>
+                        Reading GPS signal and preparing your map view.
+                      </p>
+                    </div>
+                  </div>
                 )}
                 {geoStatus === 'error' && (
                   <>
