@@ -7,6 +7,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Home from './components/Home';
 import LocationServiceOff from './components/LocationServiceOff';
+import Notifications from './components/Notifications';
 import Settings from './components/Settings';
 import { isAuthenticated } from './utils/auth-cookie';
 import { FiCompass, FiMapPin } from 'react-icons/fi';
@@ -103,6 +104,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
           </ProtectedRoute>
         }
       />

@@ -18,7 +18,7 @@ export default function Settings() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 pb-28 sm:p-6">
+        <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 pb-24 sm:p-6">
             <div className="mx-auto max-w-2xl space-y-4">
 
                 {/* header */}

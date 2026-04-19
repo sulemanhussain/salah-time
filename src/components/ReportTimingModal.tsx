@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
 import {
-    FiAlertTriangle,
     FiCheckCircle,
     FiFlag,
     FiInfo,
