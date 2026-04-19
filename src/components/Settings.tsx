@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { FiEdit3, FiInfo, FiUser } from "react-icons/fi";
+import { FiChevronRight, FiEdit3, FiInfo, FiUser } from "react-icons/fi";
 import NavigationBar from "./NavigationBar";
+import ProfileModal from "./ProfileModal";
+import { getAuthCookie } from "../utils/auth-cookie";
 
 const VOLUNTEER_KEY = "salah_time_volunteer";
 
@@ -10,6 +12,11 @@ export function isVolunteer(): boolean {
 
 export default function Settings() {
     const [isVolunteerEnabled, setIsVolunteerEnabled] = useState(() => isVolunteer());
+    const [profileOpen, setProfileOpen] = useState(false);
+
+    const authUser = getAuthCookie();
+    const displayName = authUser?.email?.split("@")[0] ?? "User";
+    const initials = displayName.slice(0, 2).toUpperCase();
 
     function handleVolunteerToggle() {
         const next = !isVolunteerEnabled;
@@ -34,6 +41,30 @@ export default function Settings() {
                             <h1 className="text-xl font-extrabold leading-tight">Preferences</h1>
                         </div>
                     </div>
+                </div>
+
+                {/* profile section */}
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-teal-50/50 px-4 py-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 text-white">
+                            <FiUser size={12} />
+                        </span>
+                        <p className="text-sm font-bold text-slate-800">Account</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setProfileOpen(true)}
+                        className="flex w-full items-center gap-4 p-4 transition hover:bg-slate-50 active:bg-slate-100"
+                    >
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-base font-extrabold text-white shadow-sm">
+                            {initials}
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                            <p className="text-sm font-semibold text-slate-800">{displayName}</p>
+                            <p className="text-xs text-slate-400">{authUser?.email}</p>
+                        </div>
+                        <FiChevronRight size={16} className="shrink-0 text-slate-300" />
+                    </button>
                 </div>
 
                 {/* community section */}
@@ -112,6 +143,7 @@ export default function Settings() {
             </div>
 
             <NavigationBar />
+            <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
         </div>
     );
 }
