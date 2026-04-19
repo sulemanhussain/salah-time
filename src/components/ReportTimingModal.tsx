@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FocusEvent, FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { FiAlertTriangle, FiInfo, FiMessageSquare, FiX } from "react-icons/fi";
 import Modal from "./Modal";
@@ -24,11 +24,76 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
         "absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/75 text-slate-600 ring-1 ring-slate-200 backdrop-blur transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 sm:right-5 sm:top-5";
     const [selectedReason, setSelectedReason] = useState<string>(REPORT_REASONS[0]);
     const [details, setDetails] = useState("");
+    const [isDetailsFocused, setIsDetailsFocused] = useState(false);
+    const [keyboardInset, setKeyboardInset] = useState(0);
+    const [viewportWidth, setViewportWidth] = useState(
+        typeof window !== "undefined" ? window.innerWidth : 1024
+    );
     const MIN_DETAILS_LENGTH = 15;
     const detailsLength = details.trim().length;
     const remainingCharacters = 500 - details.length;
     const completionPercent = Math.min(100, Math.round((details.length / 500) * 100));
     const isSubmitDisabled = detailsLength < MIN_DETAILS_LENGTH;
+    const isMobileViewport = viewportWidth < 768;
+    const isMobileTyping = isDetailsFocused && isMobileViewport;
+    const keyboardAwareFormPadding = useMemo(() => {
+        if (!isDetailsFocused) return 0;
+        const fallbackInset = isMobileViewport ? 380 : 96;
+        return keyboardInset > 0 ? keyboardInset + 96 : fallbackInset;
+    }, [isDetailsFocused, keyboardInset, isMobileViewport]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const handleResize = () => setViewportWidth(window.innerWidth);
+        handleResize();
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen || typeof window === "undefined" || !window.visualViewport) {
+            setKeyboardInset(0);
+            return;
+        }
+
+        const viewport = window.visualViewport;
+
+        const updateKeyboardInset = () => {
+            const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+            setKeyboardInset(inset);
+        };
+
+        updateKeyboardInset();
+        viewport.addEventListener("resize", updateKeyboardInset);
+        viewport.addEventListener("scroll", updateKeyboardInset);
+
+        return () => {
+            viewport.removeEventListener("resize", updateKeyboardInset);
+            viewport.removeEventListener("scroll", updateKeyboardInset);
+        };
+    }, [isOpen]);
+
+    function handleClose() {
+        setSelectedReason(REPORT_REASONS[0]);
+        setDetails("");
+        setIsDetailsFocused(false);
+        setKeyboardInset(0);
+        onClose();
+    }
+
+    function handleDetailsFocus(event: FocusEvent<HTMLTextAreaElement>) {
+        setIsDetailsFocused(true);
+        [120, 320, 620].forEach((delay) => {
+            setTimeout(() => {
+                event.currentTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, delay);
+        });
+    }
+
+    function handleDetailsBlur() {
+        setIsDetailsFocused(false);
+    }
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -37,7 +102,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
             reason: selectedReason,
             details,
         });
-        onClose();
+        handleClose();
     }
 
     return createPortal(
@@ -46,10 +111,10 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                 <div className="pointer-events-none absolute -top-20 -right-12 h-44 w-44 rounded-full bg-rose-200/35 blur-2xl"></div>
                 <div className="pointer-events-none absolute top-12 -left-16 h-36 w-36 rounded-full bg-rose-100/45 blur-2xl"></div>
 
-                <div className="sticky top-0 z-20 border-b border-rose-300 bg-rose-200/95 px-5 pb-5 pt-6 text-slate-900 backdrop-blur shadow-[0_16px_36px_-24px_rgba(225,29,72,0.3)] sm:px-6">
+                <div className="top-0 z-20 border-b border-rose-300 bg-rose-200/95 px-5 pb-5 pt-6 text-slate-900 backdrop-blur shadow-[0_16px_36px_-24px_rgba(225,29,72,0.3)] sm:px-6">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleClose}
                         className={closeButtonClassName}
                         aria-label="Close"
                     >
@@ -60,13 +125,19 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                     </span>
                     <h3 className="mt-3 text-2xl font-extrabold leading-tight">Report Timing Issue</h3>
                     <p className="mt-1 text-sm text-slate-600">Flag inaccurate timings so the community can review and correct them quickly.</p>
-                    <div className="mt-4 rounded-2xl border border-rose-300 bg-white/85 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500">Mosque</p>
-                        <p className="mt-1 break-words text-sm font-semibold text-slate-900 sm:text-base">{mosqueName}</p>
-                    </div>
+                    {!isMobileTyping && (
+                        <div className="mt-4 rounded-2xl border border-rose-300 bg-white/85 px-3 py-2 backdrop-blur">
+                            <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500">Mosque</p>
+                            <p className="mt-1 break-words text-sm font-semibold text-slate-900 sm:text-base">{mosqueName}</p>
+                        </div>
+                    )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 p-4 pb-24 sm:p-6 sm:pb-28">
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-5 p-4 sm:p-6"
+                    style={keyboardAwareFormPadding ? { paddingBottom: `${keyboardAwareFormPadding}px` } : undefined}
+                >
                     <div className="mx-auto max-w-3xl space-y-4">
                         <div className="rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm">
                             <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700">
@@ -117,10 +188,12 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                                 <textarea
                                     value={details}
                                     onChange={(event) => setDetails(event.target.value)}
+                                    onFocus={handleDetailsFocus}
+                                    onBlur={handleDetailsBlur}
                                     rows={6}
                                     maxLength={500}
                                     placeholder="Explain what looks incorrect and include the expected timing if known."
-                                    className="min-h-36 rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                                    className="min-h-36 scroll-mb-56 rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
                                     required
                                 />
                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -142,15 +215,36 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                                         ? `Add at least ${MIN_DETAILS_LENGTH} characters to submit a meaningful report.`
                                         : "Looks good. Your report is clear enough to submit."}
                                 </p>
+                                {isMobileTyping && (
+                                    <div className="mt-3 flex flex-col-reverse gap-2 sm:hidden">
+                                        <button
+                                            type="button"
+                                            onClick={handleClose}
+                                            className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitDisabled}
+                                            className="h-11 rounded-xl border border-rose-200 bg-rose-400 px-5 text-sm font-semibold text-rose-950 ring-1 ring-white/50 shadow-[0_16px_30px_-18px_rgba(244,63,94,0.65)] transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:border-rose-100 disabled:bg-rose-100 disabled:text-rose-400 disabled:shadow-none"
+                                        >
+                                            Submit Report
+                                        </button>
+                                    </div>
+                                )}
                             </label>
                         </div>
                     </div>
 
-                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-rose-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+                    <div
+                        className={`sticky bottom-0 z-10 -mx-4 border-t border-rose-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 ${isMobileTyping ? "hidden sm:block" : ""}`}
+                        style={keyboardInset > 0 ? { bottom: `${keyboardInset}px` } : undefined}
+                    >
                         <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
-                                onClick={onClose}
+                                onClick={handleClose}
                                 className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
                             >
                                 Cancel
