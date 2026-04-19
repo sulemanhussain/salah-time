@@ -34,6 +34,7 @@ function MarkerContainer({ mapRef, apiResponse, showDetails }: MarkerContainerPr
                 const nameTag = document.createElement('div');
                 nameTag.className = 'name-tag';
                 nameTag.textContent = placeItem.name;
+                //nameTag.style.backgroundColor = '#016FA1';
                 marker.append(nameTag);
 
                 marker.addListener('gmp-click', () => {

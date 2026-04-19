@@ -106,7 +106,7 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                 <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-cyan-300/40 blur-2xl"></div>
                 <div className="pointer-events-none absolute top-10 -left-14 h-32 w-32 rounded-full bg-teal-200/50 blur-2xl"></div>
 
-                <div className="sticky top-0 z-20 border-b border-cyan-900/20 bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-5 pt-6 text-white shadow-[0_16px_36px_-24px_rgba(14,116,144,0.95)] sm:px-6">
+                <div className="top-0 z-20 border-b border-cyan-900/20 bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-5 pt-6 text-white shadow-[0_16px_36px_-24px_rgba(14,116,144,0.95)] sm:px-6">
                     <button
                         type="button"
                         onClick={onClose}
@@ -126,7 +126,7 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 p-4 pb-24 sm:p-6 sm:pb-28">
+                <form onSubmit={handleSubmit} className="space-y-5 p-4 sm:p-6">
                     <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 shadow-sm">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Before You Update</p>
                         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">

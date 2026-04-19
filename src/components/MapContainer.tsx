@@ -125,6 +125,13 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
         }
     }, [apiResponse]);
 
+    function onUserPointer(marker) {
+        if (marker) {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(() => marker.setAnimation(null), 3000);
+        }   
+    }
+
     return (
         <>
             <div className="container relative w-full">
@@ -135,7 +142,7 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
                         options={options}>
                         {coordinates?.lat && coordinates?.lng && (
                             <>
-                                <Marker position={{ lat: coordinates.lat, lng: coordinates.lng }} key={102121}>
+                                <Marker onLoad={onUserPointer} position={{ lat: coordinates.lat, lng: coordinates.lng }} key={102121}>
                                     <InfoWindow>
                                         <label>I'm here</label>
                                     </InfoWindow>
