@@ -22,7 +22,7 @@ export default function LocationServiceOff() {
 
     return (
         <>
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+            <div className="bg-gray-50 flex items-center justify-center px-4">
                 <div className="max-w-lg w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-8 text-center">
 
                     {/* Icon */}

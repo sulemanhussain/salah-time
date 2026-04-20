@@ -1,5 +1,5 @@
 import { Circle, GoogleMap, InfoWindow, Marker } from "@react-google-maps/api";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GetMapLocationInfo } from "../data/Maps";
 import type { MapPlace } from "../data/Maps";
 import MarkerContainer from "./MarkerContainer";
@@ -19,6 +19,9 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     const [clickCount, setClickCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
+    const abortRef = useRef<AbortController | null>(null);
+
+    useEffect(() => () => abortRef.current?.abort(), []);
 
     const userZoom = 16;
 
@@ -42,7 +45,11 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     }), [userZoom]);
 
 
-    const fetchData = async (map) => {
+    const fetchData = async (map: google.maps.Map) => {
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+        const { signal } = abortRef.current;
+
         try {
             setMapRef(map);
 
@@ -60,11 +67,10 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
             }
 
             const response = await GetMapLocationInfo(apiKey, { lat: coordinates.lat!, lng: coordinates.lng! }, currentRadius);
-            // console.log(response);
-            setApiResponse(response.results);
+            if (!signal.aborted) setApiResponse(response.results);
 
         } catch (error) {
-            console.error('Error fetching nearby places:', error);
+            if (!signal.aborted) console.error('Error fetching nearby places:', error);
         }
     };
 
@@ -118,14 +124,14 @@ export default function MapContainer({ apiKey, coordinates }: { apiKey: string; 
     };
 
     const showDetails = useCallback(function showDetails(id: string) {
-        const place = apiResponse.find(p => p.place_id === id);
+        const place = apiResponse?.find(p => p.place_id === id);
         if (place) {
             setSelectedPlace(place);
             setIsOpen(true);
         }
     }, [apiResponse]);
 
-    function onUserPointer(marker) {
+    function onUserPointer(marker: google.maps.Marker) {
         if (marker) {
             marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(() => marker.setAnimation(null), 3000);

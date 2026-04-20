@@ -123,22 +123,20 @@ export default function ProfileModal({ isOpen, onClose }: Props) {
         <Modal isOpen={isOpen} fullPage>
             <div className="relative flex flex-col flex-1 overflow-x-hidden bg-gradient-to-b from-teal-50 via-white to-cyan-50">
 
-                {/* close button — always visible top-right */}
-                <button
-                    type="button"
-                    onClick={handleClose}
-                    aria-label="Close"
-                    className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-slate-600 shadow-sm ring-1 ring-slate-200 backdrop-blur transition hover:bg-white hover:text-slate-800 sm:right-5 sm:top-5"
-                >
-                    <FiX size={17} />
-                </button>
-
                 {/* form */}
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
                     <div className="flex-1 overflow-y-auto">
 
-                        {/* header — scrolls with content */}
-                        <div className="relative overflow-hidden bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-6 pt-6 text-white shadow-[0_16px_40px_-20px_rgba(14,116,144,0.6)] sm:px-6">
+                        {/* header — sticky so close button stays visible */}
+                        <div className="top-0 z-20 relative overflow-hidden bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-6 pt-6 text-white shadow-[0_16px_40px_-20px_rgba(14,116,144,0.6)] sm:px-6">
+                            <button
+                                type="button"
+                                onClick={handleClose}
+                                aria-label="Close"
+                                className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 backdrop-blur transition hover:bg-white/30 sm:right-5 sm:top-5"
+                            >
+                                <FiX size={17} />
+                            </button>
                             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
                             <div className="pointer-events-none absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-teal-600/30 blur-2xl" />
                             <div className="relative">

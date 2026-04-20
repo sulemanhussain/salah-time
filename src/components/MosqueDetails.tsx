@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     FiAlertTriangle,
     FiClock,
@@ -14,52 +14,7 @@ import type { MapPlace } from "../data/Maps";
 import UpdateTimingModal from "./UpdateTimingModal";
 import ReportTimingModal from "./ReportTimingModal";
 import { isVolunteer } from "./Settings";
-
-// Helper function to add minutes to a time string
-const addMinutesToTime = (timeString: string, minutes: number): string => {
-    const [hours, mins] = timeString.split(':').map(Number);
-    let newMins = mins + minutes;
-    let newHours = hours;
-
-    if (newMins >= 60) {
-        newHours += Math.floor(newMins / 60);
-        newMins = newMins % 60;
-        if (newHours >= 24) {
-            newHours = newHours % 24;
-        }
-    }
-
-    return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
-};
-
-const parseTimeToMinutes = (timeString: string): number | null => {
-    const match = timeString.match(/(\d{1,2}):(\d{2})/);
-    if (!match) return null;
-
-    const hours = Number(match[1]);
-    const minutes = Number(match[2]);
-
-    if (Number.isNaN(hours) || Number.isNaN(minutes) || hours > 23 || minutes > 59) {
-        return null;
-    }
-
-    return hours * 60 + minutes;
-};
-
-const calculateMinuteGap = (startMinutes: number, endMinutes: number): number => {
-    return (endMinutes - startMinutes + 1440) % 1440;
-};
-
-const formatTimeUntil = (minutesAway: number): string => {
-    if (minutesAway <= 0) return "Now";
-
-    const hours = Math.floor(minutesAway / 60);
-    const minutes = minutesAway % 60;
-
-    if (hours === 0) return `in ${minutes}m`;
-    if (minutes === 0) return `in ${hours}h`;
-    return `in ${hours}h ${minutes}m`;
-};
+import { addMinutesToTime, parseTimeToMinutes, calculateMinuteGap, formatTimeUntil } from "../utils/time";
 
 type PrayerRow = {
     key: string;
@@ -77,6 +32,14 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [timingsError, setTimingsError] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<"update" | "report" | null>(null);
     const [fetchAttempt, setFetchAttempt] = useState(0);
+    const [nowMinutes, setNowMinutes] = useState(() => new Date().getHours() * 60 + new Date().getMinutes());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setNowMinutes(new Date().getHours() * 60 + new Date().getMinutes());
+        }, 60_000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Fetch prayer timings
     useEffect(() => {
@@ -109,26 +72,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
         setActiveModal(null);
     }, [place?.place_id]);
 
-    if (!place) {
-        return null;
-    }
-
-    function updateTimings() {
-        setActiveModal("update");
-    }
-
-    function report() {
-        setActiveModal("report");
-    }
-
-    function closeActionModal() {
-        setActiveModal(null);
-    }
-
-    const location = place.geometry.location;
-    const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}&destination_place_id=${place.place_id}`;
-    const mapsPlaceUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`;
-    const prayerRows: PrayerRow[] = prayerTimings
+    const prayerRows = useMemo<PrayerRow[]>(() => prayerTimings
         ? [
               {
                   key: "fajr",
@@ -171,56 +115,34 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                   congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Isha, 15)),
               },
           ]
-        : [];
+        : [], [prayerTimings]);
 
-    const currentTimeInMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-    const prayerEvents = prayerRows
-        .flatMap((row) => [
-            row.adhanMinutes !== null
-                ? {
-                      prayerKey: row.key,
-                      prayerName: row.prayer,
-                      type: "Aadhan" as const,
-                      displayTime: row.adhan,
-                      minutes: row.adhanMinutes,
-                  }
-                : null,
-            row.congregationMinutes !== null
-                ? {
-                      prayerKey: row.key,
-                      prayerName: row.prayer,
-                      type: "Congregation" as const,
-                      displayTime: row.congregation,
-                      minutes: row.congregationMinutes,
-                  }
-                : null,
-        ])
-        .filter((event): event is NonNullable<typeof event> => event !== null);
+    const nextEvent = useMemo(() => {
+        const events = prayerRows.flatMap((row) => [
+            row.adhanMinutes !== null ? { prayerKey: row.key, prayerName: row.prayer, type: "Aadhan" as const, displayTime: row.adhan, minutes: row.adhanMinutes } : null,
+            row.congregationMinutes !== null ? { prayerKey: row.key, prayerName: row.prayer, type: "Congregation" as const, displayTime: row.congregation, minutes: row.congregationMinutes } : null,
+        ]).filter((e): e is NonNullable<typeof e> => e !== null);
 
-    const nextEvent = (() => {
-        if (!prayerEvents.length) return null;
+        if (!events.length) return null;
 
-        const upcomingToday = prayerEvents
-            .filter((event) => event.minutes >= currentTimeInMinutes)
-            .sort((a, b) => a.minutes - b.minutes);
-
-        if (upcomingToday.length) {
-            const event = upcomingToday[0];
-            return {
-                ...event,
-                isTomorrow: false,
-                minutesAway: event.minutes - currentTimeInMinutes,
-            };
+        const upcoming = events.filter((e) => e.minutes >= nowMinutes).sort((a, b) => a.minutes - b.minutes);
+        if (upcoming.length) {
+            return { ...upcoming[0], isTomorrow: false, minutesAway: upcoming[0].minutes - nowMinutes };
         }
 
-        const firstEventTomorrow = [...prayerEvents].sort((a, b) => a.minutes - b.minutes)[0];
-        return {
-            ...firstEventTomorrow,
-            isTomorrow: true,
-            minutesAway: (1440 - currentTimeInMinutes) + firstEventTomorrow.minutes,
-        };
-    })();
+        const first = [...events].sort((a, b) => a.minutes - b.minutes)[0];
+        return { ...first, isTomorrow: true, minutesAway: (1440 - nowMinutes) + first.minutes };
+    }, [prayerRows, nowMinutes]);
 
+    if (!place) return null;
+
+    function updateTimings() { setActiveModal("update"); }
+    function report() { setActiveModal("report"); }
+    function closeActionModal() { setActiveModal(null); }
+
+    const location = place.geometry.location;
+    const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}&destination_place_id=${place.place_id}`;
+    const mapsPlaceUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`;
     const mosqueType = place.types?.find((type) => type !== "point_of_interest" && type !== "establishment");
 
     return (
@@ -449,28 +371,24 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         </p>
                     </div>
 
-                    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                    <div className={`grid gap-3 ${isVolunteer() ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                         {isVolunteer() && (
-                        <button
-                            type='button'
-                            onClick={updateTimings}
-                            className='group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 py-4 text-white ring-1 ring-white/20 shadow-[0_18px_34px_-18px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_38px_-18px_rgba(14,116,144,0.95)] active:translate-y-0'
-                        >
-                            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/25 ring-1 ring-white/40'>
-                                <FiEdit3 size={16} />
-                            </span>
-                            <span className="text-sm font-semibold">Update Timings</span>
-                        </button>
+                            <button
+                                type='button'
+                                onClick={updateTimings}
+                                className='inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0'
+                            >
+                                <FiEdit3 size={15} />
+                                Update Timings
+                            </button>
                         )}
                         <button
                             type='button'
                             onClick={report}
-                            className='group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl border border-rose-200/90 bg-rose-400 px-5 py-4 text-rose-950 ring-1 ring-white/50 shadow-[0_18px_34px_-20px_rgba(244,63,94,0.65)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-500 hover:shadow-[0_22px_38px_-20px_rgba(244,63,94,0.75)] active:translate-y-0'
+                            className='inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-600 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-rose-50 hover:border-rose-300 active:translate-y-0'
                         >
-                            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/70 ring-1 ring-rose-200'>
-                                <FiAlertTriangle size={16} />
-                            </span>
-                            <span className="text-sm font-semibold">Report Issue</span>
+                            <FiAlertTriangle size={15} />
+                            Report Issue
                         </button>
                     </div>
                 </div>
