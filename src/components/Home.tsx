@@ -62,7 +62,9 @@ export default function Home() {
                                 Assalamu Alaikum, <span className="text-cyan-200">{displayName}</span>
                             </h1>
                             <p className="mt-1.5 text-sm text-cyan-100/90">
-                                Thank you for keeping local mosque prayer data accurate.
+                                {isVolunteer()
+                                    ? "JazakAllahu Khayran — your contributions help Muslims find accurate prayer times."
+                                    : "Join our contributors and help keep local mosque prayer times accurate for everyone."}
                             </p>
                             <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
                                 <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">
