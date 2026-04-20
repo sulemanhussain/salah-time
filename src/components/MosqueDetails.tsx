@@ -12,7 +12,9 @@ import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-
 import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
 import UpdateTimingModal from "./UpdateTimingModal";
+import UpdateMethodModal from "./UpdateMethodModal";
 import ReportTimingModal from "./ReportTimingModal";
+import { FLAGS } from "../flags";
 import { isVolunteer } from "./Settings";
 import { addMinutesToTime, parseTimeToMinutes, calculateMinuteGap, formatTimeUntil } from "../utils/time";
 
@@ -30,7 +32,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
     const [isLoadingTimings, setIsLoadingTimings] = useState(false);
     const [timingsError, setTimingsError] = useState<string | null>(null);
-    const [activeModal, setActiveModal] = useState<"update" | "report" | null>(null);
+    const [activeModal, setActiveModal] = useState<"method" | "update" | "report" | null>(null);
     const [fetchAttempt, setFetchAttempt] = useState(0);
     const [nowMinutes, setNowMinutes] = useState(() => new Date().getHours() * 60 + new Date().getMinutes());
 
@@ -136,7 +138,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
 
     if (!place) return null;
 
-    function updateTimings() { setActiveModal("update"); }
+    function updateTimings() { setActiveModal(FLAGS.UPDATE_METHOD_PICKER ? "method" : "update"); }
     function report() { setActiveModal("report"); }
     function closeActionModal() { setActiveModal(null); }
 
@@ -394,6 +396,12 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                 </div>
             </div>
 
+            <UpdateMethodModal
+                isOpen={activeModal === "method"}
+                mosqueName={place.name}
+                onManual={() => setActiveModal("update")}
+                onClose={closeActionModal}
+            />
             <UpdateTimingModal
                 isOpen={activeModal === "update"}
                 mosqueName={place.name}

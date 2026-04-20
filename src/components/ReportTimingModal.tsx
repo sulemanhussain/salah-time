@@ -1,9 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { useRef } from "react";
 import {
     FiCheckCircle,
+    FiFile,
     FiFlag,
+    FiImage,
     FiInfo,
     FiMessageSquare,
     FiSend,
@@ -29,8 +32,22 @@ const REPORT_REASONS = [
 type ReasonId = typeof REPORT_REASONS[number]["id"];
 
 export default function ReportTimingModal({ isOpen, mosqueName, onClose }: ReportTimingModalProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedReason, setSelectedReason] = useState<ReasonId>(REPORT_REASONS[0].id);
     const [details, setDetails] = useState("");
+    const [photo, setPhoto] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+    function handlePhoto(file: File) {
+        setPhoto(file);
+        setPhotoPreview(URL.createObjectURL(file));
+    }
+
+    function removePhoto() {
+        if (photoPreview) URL.revokeObjectURL(photoPreview);
+        setPhoto(null);
+        setPhotoPreview(null);
+    }
     const MIN_DETAILS_LENGTH = 15;
     const detailsLength = details.trim().length;
     const remainingCharacters = 500 - details.length;
@@ -49,6 +66,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
             mosqueName,
             reason: selectedReason,
             details,
+            photo: photo?.name ?? null,
         });
         onhandleClose();
     }
@@ -56,6 +74,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
     function onhandleClose() {
         setSelectedReason(REPORT_REASONS[0].id);
         setDetails("");
+        removePhoto();
         onClose();
     }
 
@@ -105,7 +124,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                 </div>
 
                 {/* ── form ── */}
-                <form onSubmit={handleSubmit} className="space-y-4 p-4 pb-40 sm:p-6">
+                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
                     <div className="mx-auto max-w-3xl space-y-4">
 
                         {/* guidance */}
@@ -196,6 +215,60 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                                 </label>
                             </div>
                         </div>
+                        {/* step 3 — photo */}
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-rose-50/50 px-4 py-3">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-[11px] font-bold text-white shadow-sm shadow-rose-200">
+                                    3
+                                </span>
+                                <p className="text-sm font-bold text-slate-800">Attach a photo <span className="text-xs font-normal text-slate-400">(optional)</span></p>
+                            </div>
+                            <div className="p-4">
+                                {photoPreview ? (
+                                    <div className="space-y-3">
+                                        <div className="relative overflow-hidden rounded-xl border border-slate-200">
+                                            <img src={photoPreview} alt="Attached" className="max-h-52 w-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={removePhoto}
+                                                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
+                                            >
+                                                <FiX size={13} />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+                                            <FiFile size={13} className="shrink-0 text-slate-400" />
+                                            <span className="min-w-0 flex-1 truncate text-xs text-slate-600">{photo?.name}</span>
+                                            <button type="button" onClick={() => fileInputRef.current?.click()} className="shrink-0 text-xs font-semibold text-rose-500 hover:text-rose-700">
+                                                Change
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handlePhoto(f); }}
+                                        className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center transition hover:border-rose-300 hover:bg-rose-50/40"
+                                    >
+                                        <FiImage size={22} className="text-slate-400" />
+                                        <p className="text-xs font-medium text-slate-500">
+                                            Drag & drop or <span className="font-semibold text-rose-500">browse</span>
+                                        </p>
+                                        <p className="text-[10px] text-slate-400">JPG, PNG · max 10 MB</p>
+                                    </button>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhoto(f); e.target.value = ""; }}
+                                />
+                            </div>
+                        </div>
+
                     </div>
 
                     {/* ── footer ── */}
