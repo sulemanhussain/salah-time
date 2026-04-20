@@ -68,9 +68,9 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                 <div className="pointer-events-none absolute top-32 -left-16 h-40 w-40 rounded-full bg-pink-200/25 blur-3xl" />
 
                 {/* ── header ── */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-rose-900 via-rose-800 to-pink-800 px-5 pb-6 pt-6 text-white shadow-[0_16px_40px_-20px_rgba(136,19,55,0.55)] sm:px-6">
-                    <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-                    <div className="pointer-events-none absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-rose-700/30 blur-2xl" />
+                <div className="relative overflow-hidden bg-gradient-to-r from-rose-700 via-rose-600 to-pink-600 px-5 pb-6 pt-6 text-white shadow-[0_16px_40px_-20px_rgba(190,18,60,0.55)] sm:px-6">
+                    <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
+                    <div className="pointer-events-none absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
 
                     <button
                         type="button"
@@ -88,7 +88,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                         <h3 className="mt-2.5 text-2xl font-extrabold leading-tight tracking-tight">
                             Report an Issue
                         </h3>
-                        <p className="mt-1 text-sm text-rose-200">
+                        <p className="mt-1 text-sm text-white/75">
                             Help the community by flagging inaccurate timings for review.
                         </p>
 
@@ -97,7 +97,7 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                                 🕌
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-rose-200">Reporting for</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/75">Reporting for</p>
                                 <p className="truncate text-sm font-bold text-white">{mosqueName}</p>
                             </div>
                         </div>

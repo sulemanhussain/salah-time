@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { FiClock, FiInfo, FiUsers, FiX } from "react-icons/fi";
 import type { PrayerTime } from "../data/adaan-timings";
+import { addMinutesToTime } from "../utils/time";
 import Modal from "./Modal";
 
 type EditablePrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
@@ -27,19 +28,6 @@ const normalizeTimeValue = (value?: string): string => {
     return value.slice(0, 5);
 };
 
-const addMinutesToTime = (timeString: string, minutes: number): string => {
-    if (!timeString) return "";
-    const [hours, mins] = timeString.split(":").map(Number);
-    if (Number.isNaN(hours) || Number.isNaN(mins)) return "";
-
-    let totalMinutes = hours * 60 + mins + minutes;
-    while (totalMinutes < 0) totalMinutes += 24 * 60;
-    totalMinutes = totalMinutes % (24 * 60);
-
-    const newHours = Math.floor(totalMinutes / 60);
-    const newMins = totalMinutes % 60;
-    return `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
-};
 
 const defaultCongregationTime = (prayer: EditablePrayer, adhan: string): string => {
     if (!adhan) return "";
@@ -55,31 +43,32 @@ const getPrayerHint = (prayer: EditablePrayer): string => {
 export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, onClose }: UpdateTimingModalProps) {
     const closeButtonClassName =
         "absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 backdrop-blur transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:right-5 sm:top-5";
-    const [updatedTimings, setUpdatedTimings] = useState<Record<EditablePrayer, PrayerTimingInput>>({
-        Fajr: { adhan: "", congregation: "" },
-        Dhuhr: { adhan: "", congregation: "" },
-        Asr: { adhan: "", congregation: "" },
-        Maghrib: { adhan: "", congregation: "" },
-        Isha: { adhan: "", congregation: "" },
-    });
+    const buildTimings = (pt: PrayerTime | null): Record<EditablePrayer, PrayerTimingInput> => {
+        const fajr = normalizeTimeValue(pt?.Fajr);
+        const dhuhr = normalizeTimeValue(pt?.Dhuhr);
+        const asr = normalizeTimeValue(pt?.Asr);
+        const maghrib = normalizeTimeValue(pt?.Maghrib);
+        const isha = normalizeTimeValue(pt?.Isha);
+        return {
+            Fajr:    { adhan: fajr,    congregation: defaultCongregationTime("Fajr",    fajr)    },
+            Dhuhr:   { adhan: dhuhr,   congregation: defaultCongregationTime("Dhuhr",   dhuhr)   },
+            Asr:     { adhan: asr,     congregation: defaultCongregationTime("Asr",     asr)     },
+            Maghrib: { adhan: maghrib, congregation: defaultCongregationTime("Maghrib", maghrib) },
+            Isha:    { adhan: isha,    congregation: defaultCongregationTime("Isha",    isha)    },
+        };
+    };
 
-    useEffect(() => {
-        if (!isOpen) return;
+    const [updatedTimings, setUpdatedTimings] = useState<Record<EditablePrayer, PrayerTimingInput>>(
+        () => buildTimings(prayerTimings)
+    );
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+    const [prevTimings, setPrevTimings] = useState(prayerTimings);
 
-        const fajrAdhan = normalizeTimeValue(prayerTimings?.Fajr);
-        const dhuhrAdhan = normalizeTimeValue(prayerTimings?.Dhuhr);
-        const asrAdhan = normalizeTimeValue(prayerTimings?.Asr);
-        const maghribAdhan = normalizeTimeValue(prayerTimings?.Maghrib);
-        const ishaAdhan = normalizeTimeValue(prayerTimings?.Isha);
-
-        setUpdatedTimings({
-            Fajr: { adhan: fajrAdhan, congregation: defaultCongregationTime("Fajr", fajrAdhan) },
-            Dhuhr: { adhan: dhuhrAdhan, congregation: defaultCongregationTime("Dhuhr", dhuhrAdhan) },
-            Asr: { adhan: asrAdhan, congregation: defaultCongregationTime("Asr", asrAdhan) },
-            Maghrib: { adhan: maghribAdhan, congregation: defaultCongregationTime("Maghrib", maghribAdhan) },
-            Isha: { adhan: ishaAdhan, congregation: defaultCongregationTime("Isha", ishaAdhan) },
-        });
-    }, [isOpen, prayerTimings]);
+    if (isOpen && (prevIsOpen !== isOpen || prevTimings !== prayerTimings)) {
+        setPrevIsOpen(isOpen);
+        setPrevTimings(prayerTimings);
+        setUpdatedTimings(buildTimings(prayerTimings));
+    }
 
     function handleTimeChange(prayer: EditablePrayer, field: TimingField, value: string) {
         setUpdatedTimings((previous) => ({
