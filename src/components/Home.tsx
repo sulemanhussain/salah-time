@@ -22,10 +22,6 @@ export default function Home() {
         ? new Date(authUser.loggedInAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
         : "Recently";
 
-    const todayFormatted = new Date().toLocaleDateString(undefined, {
-        weekday: "long", day: "numeric", month: "long",
-    });
-
     const stats = [
         { label: "Timings Updated",   value: 12, trend: "+3 this week",  icon: FiEdit3,       color: "from-teal-500 to-cyan-600",     bg: "bg-teal-50",    text: "text-teal-700"    },
         { label: "Reports Submitted", value: 4,  trend: "1 resolved",    icon: FiAlertTriangle, color: "from-rose-500 to-pink-600",   bg: "bg-rose-50",    text: "text-rose-700"    },
@@ -55,9 +51,6 @@ export default function Home() {
 
                     <div className="relative flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-semibold uppercase tracking-widest text-cyan-200">
-                                {todayFormatted}
-                            </p>
                             <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">
                                 Assalamu Alaikum, <span className="text-cyan-200">{displayName}</span>
                             </h1>
