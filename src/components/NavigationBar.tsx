@@ -18,10 +18,10 @@ export default function NavigationBar() {
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
             {/* full-width blur curtain */}
-            <div className="absolute inset-0 backdrop-blur-xl [mask-image:linear-gradient(to_bottom,transparent_0%,black_40%)]"></div>
+            <div className="absolute inset-0 backdrop-blur-xl bg-white/30 dark:bg-slate-950/40 [mask-image:linear-gradient(to_bottom,transparent_0%,black_40%)]"></div>
             <div className="relative flex justify-center pb-4 px-4">
             <div className="pointer-events-auto w-full max-w-sm">
-                <div className="relative flex items-center justify-around rounded-2xl bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(13,148,136,0.18),0_2px_12px_-2px_rgba(0,0,0,0.10)] border border-white/60 px-2 py-2">
+                <div className="relative flex items-center justify-around rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(13,148,136,0.18),0_2px_12px_-2px_rgba(0,0,0,0.10)] border border-white/60 dark:border-slate-700/60 px-2 py-2">
 
                     {items.map(({ to, label, Icon, IconActive, badge }) => (
                         <NavLink
@@ -45,12 +45,12 @@ export default function NavigationBar() {
                                     <span className={`relative transition-all duration-200 ${isActive ? "scale-110" : "active:scale-90"}`}>
                                         {isActive
                                             ? <IconActive size={22} className="text-white drop-shadow-sm" />
-                                            : <Icon size={22} className="text-slate-400" />
+                                            : <Icon size={22} className="text-slate-400 dark:text-slate-500" />
                                         }
 
                                         {/* unread badge */}
                                         {badge > 0 && !isActive && (
-                                            <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white">
+                                            <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
                                                 {badge}
                                             </span>
                                         )}
@@ -58,7 +58,7 @@ export default function NavigationBar() {
 
                                     {/* label */}
                                     <span className={`relative text-[9px] font-semibold tracking-wide mt-0.5 transition-all duration-200 ${
-                                        isActive ? "text-white" : "text-slate-400"
+                                        isActive ? "text-white" : "text-slate-400 dark:text-slate-500"
                                     }`}>
                                         {label}
                                     </span>
@@ -69,7 +69,7 @@ export default function NavigationBar() {
                     ))}
                 </div>
             </div>
-        </div>
+            </div>
         </nav>
     );
 }

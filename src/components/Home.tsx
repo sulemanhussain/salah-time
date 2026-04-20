@@ -23,25 +23,25 @@ export default function Home() {
         : "Recently";
 
     const stats = [
-        { label: "Timings Updated",   value: 12, trend: "+3 this week",  icon: FiEdit3,       color: "from-teal-500 to-cyan-600",     bg: "bg-teal-50",    text: "text-teal-700"    },
-        { label: "Reports Submitted", value: 4,  trend: "1 resolved",    icon: FiAlertTriangle, color: "from-rose-500 to-pink-600",   bg: "bg-rose-50",    text: "text-rose-700"    },
-        { label: "Verified",          value: 9,  trend: "90% accuracy",  icon: FiCheckCircle,  color: "from-emerald-500 to-green-600", bg: "bg-emerald-50", text: "text-emerald-700" },
+        { label: "Timings Updated",   value: 12, trend: "+3 this week",  icon: FiEdit3,        color: "from-teal-500 to-cyan-600",     bg: "bg-teal-50 dark:bg-teal-900/30",    text: "text-teal-700 dark:text-teal-400"    },
+        { label: "Reports Submitted", value: 4,  trend: "1 resolved",    icon: FiAlertTriangle, color: "from-rose-500 to-pink-600",    bg: "bg-rose-50 dark:bg-rose-900/30",    text: "text-rose-700 dark:text-rose-400"    },
+        { label: "Verified",          value: 9,  trend: "90% accuracy",  icon: FiCheckCircle,  color: "from-emerald-500 to-green-600", bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400" },
     ];
 
     const recentActivity = [
-        { icon: FiEdit3,        color: "bg-teal-100 text-teal-600",     title: "Masjid Noor — Fajr",   detail: "Updated congregation to 05:45 AM",  time: "2h ago"    },
-        { icon: FiAlertTriangle,color: "bg-rose-100 text-rose-600",     title: "Jamia Masjid — Dhuhr", detail: "Reported mismatch with noticeboard", time: "Yesterday" },
-        { icon: FiCheckCircle,  color: "bg-emerald-100 text-emerald-600", title: "Al Rahma — Isha",    detail: "Verified Aadhan and Jama'ah times",  time: "3 days ago" },
+        { icon: FiEdit3,         color: "bg-teal-100 dark:bg-teal-900/40 text-teal-600",     title: "Masjid Noor — Fajr",   detail: "Updated congregation to 05:45 AM",  time: "2h ago"    },
+        { icon: FiAlertTriangle, color: "bg-rose-100 dark:bg-rose-900/40 text-rose-600",     title: "Jamia Masjid — Dhuhr", detail: "Reported mismatch with noticeboard", time: "Yesterday" },
+        { icon: FiCheckCircle,   color: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600", title: "Al Rahma — Isha",  detail: "Verified Aadhan and Jama'ah times",  time: "3 days ago" },
     ];
 
     const suggestions = [
-        { icon: FiClock,       title: "Verify Friday Jumu'ah timing",  note: "Multiple users flagged outdated Friday schedules nearby." },
-        { icon: FiEdit3,       title: "Confirm Ramadan timetable",     note: "Seasonal times shift significantly — your update would help many." },
-        { icon: FiTrendingUp,  title: "Review high-traffic mosques",   note: "3 nearby mosques have unverified timings and are frequently visited." },
+        { icon: FiClock,      title: "Verify Friday Jumu'ah timing",  note: "Multiple users flagged outdated Friday schedules nearby." },
+        { icon: FiEdit3,      title: "Confirm Ramadan timetable",     note: "Seasonal times shift significantly — your update would help many." },
+        { icon: FiTrendingUp, title: "Review high-traffic mosques",   note: "3 nearby mosques have unverified timings and are frequently visited." },
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 pb-24 sm:p-5">
+        <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 pb-24 sm:p-5">
             <div className="mx-auto max-w-2xl space-y-4">
 
                 {/* hero */}
@@ -80,7 +80,7 @@ export default function Home() {
 
                     <Link
                         to="/app"
-                        className="mt-5 flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-teal-800 shadow-lg transition hover:bg-teal-50 active:scale-95"
+                        className="mt-5 flex items-center gap-2 rounded-xl bg-white dark:bg-slate-900 px-4 py-3 text-sm font-bold text-teal-800 dark:text-teal-400 shadow-lg transition hover:bg-teal-50 dark:hover:bg-slate-800 active:scale-95"
                     >
                         <FiMapPin size={15} />
                         Find Mosques Near Me
@@ -89,21 +89,21 @@ export default function Home() {
                 </div>
 
                 {/* contribution stats */}
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-teal-50/50 px-4 py-3">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                    <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-teal-50/50 dark:from-slate-800 dark:to-slate-800 px-4 py-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 text-white">
                             <FiTrendingUp size={12} />
                         </span>
-                        <p className="text-sm font-bold text-slate-800">Your Contributions</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Your Contributions</p>
                     </div>
-                    <div className="grid grid-cols-3 divide-x divide-slate-100">
+                    <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
                         {stats.map((s) => (
                             <div key={s.label} className="flex flex-col items-center gap-1 px-2 py-4 text-center">
                                 <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${s.color} text-white shadow-sm`}>
                                     <s.icon size={15} />
                                 </span>
-                                <p className="mt-1 text-3xl font-extrabold tabular-nums text-slate-800">{s.value}</p>
-                                <p className="text-[10px] font-semibold leading-tight text-slate-500">{s.label}</p>
+                                <p className="mt-1 text-3xl font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{s.value}</p>
+                                <p className="text-[10px] font-semibold leading-tight text-slate-500 dark:text-slate-400">{s.label}</p>
                                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.bg} ${s.text}`}>
                                     {s.trend}
                                 </span>
@@ -113,53 +113,53 @@ export default function Home() {
                 </div>
 
                 {/* recent activity */}
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-cyan-50/50 px-4 py-3">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-cyan-50/50 dark:from-slate-800 dark:to-slate-800 px-4 py-3">
                         <div className="flex items-center gap-2.5">
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500 text-white">
                                 <FiActivity size={12} />
                             </span>
-                            <p className="text-sm font-bold text-slate-800">Recent Activity</p>
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Recent Activity</p>
                         </div>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                        <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                             Last 7 days
                         </span>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
                         {recentActivity.map((item) => (
                             <div key={item.title} className="flex items-center gap-3 px-4 py-3.5">
                                 <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
                                     <item.icon size={15} />
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800">{item.title}</p>
-                                    <p className="mt-0.5 truncate text-xs text-slate-500">{item.detail}</p>
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</p>
+                                    <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{item.detail}</p>
                                 </div>
-                                <span className="shrink-0 text-[11px] text-slate-400">{item.time}</span>
+                                <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">{item.time}</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* suggestions */}
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-amber-50/60 px-4 py-3">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                    <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-amber-50/60 dark:from-slate-800 dark:to-slate-800 px-4 py-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-white">
                             <FiAward size={12} />
                         </span>
-                        <p className="text-sm font-bold text-slate-800">Suggested Actions</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Suggested Actions</p>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
                         {suggestions.map((item) => (
-                            <button key={item.title} type="button" className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-amber-50/40 active:bg-amber-50">
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                            <button key={item.title} type="button" className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-amber-50/40 dark:hover:bg-amber-900/10 active:bg-amber-50 dark:active:bg-amber-900/20">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
                                     <item.icon size={15} />
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800">{item.title}</p>
-                                    <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{item.note}</p>
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</p>
+                                    <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{item.note}</p>
                                 </div>
-                                <FiChevronRight size={15} className="shrink-0 text-slate-300" />
+                                <FiChevronRight size={15} className="shrink-0 text-slate-300 dark:text-slate-600" />
                             </button>
                         ))}
                     </div>

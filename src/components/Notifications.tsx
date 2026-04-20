@@ -35,11 +35,11 @@ const TYPE_META: Record<NotifType, {
     labelBg:    string;
     labelText:  string;
 }> = {
-    update:   { icon: FiEdit3,       iconBg: "bg-teal-100",    iconColor: "text-teal-600",    accent: "bg-teal-400",    label: "Update",   labelBg: "bg-teal-50",    labelText: "text-teal-700"    },
-    report:   { icon: FiFlag,        iconBg: "bg-rose-100",    iconColor: "text-rose-600",    accent: "bg-rose-400",    label: "Report",   labelBg: "bg-rose-50",    labelText: "text-rose-700"    },
-    verified: { icon: FiCheckCircle, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", accent: "bg-emerald-400", label: "Verified", labelBg: "bg-emerald-50", labelText: "text-emerald-700" },
-    nearby:   { icon: FiMapPin,      iconBg: "bg-sky-100",     iconColor: "text-sky-600",     accent: "bg-sky-400",     label: "Nearby",   labelBg: "bg-sky-50",     labelText: "text-sky-700"     },
-    system:   { icon: FiInfo,        iconBg: "bg-amber-100",   iconColor: "text-amber-600",   accent: "bg-amber-400",   label: "System",   labelBg: "bg-amber-50",   labelText: "text-amber-700"   },
+    update:   { icon: FiEdit3,       iconBg: "bg-teal-100 dark:bg-teal-900/40",    iconColor: "text-teal-600 dark:text-teal-400",    accent: "bg-teal-400",    label: "Update",   labelBg: "bg-teal-50 dark:bg-teal-900/30",    labelText: "text-teal-700 dark:text-teal-400"    },
+    report:   { icon: FiFlag,        iconBg: "bg-rose-100 dark:bg-rose-900/40",    iconColor: "text-rose-600 dark:text-rose-400",    accent: "bg-rose-400",    label: "Report",   labelBg: "bg-rose-50 dark:bg-rose-900/30",    labelText: "text-rose-700 dark:text-rose-400"    },
+    verified: { icon: FiCheckCircle, iconBg: "bg-emerald-100 dark:bg-emerald-900/40", iconColor: "text-emerald-600 dark:text-emerald-400", accent: "bg-emerald-400", label: "Verified", labelBg: "bg-emerald-50 dark:bg-emerald-900/30", labelText: "text-emerald-700 dark:text-emerald-400" },
+    nearby:   { icon: FiMapPin,      iconBg: "bg-sky-100 dark:bg-sky-900/40",      iconColor: "text-sky-600 dark:text-sky-400",      accent: "bg-sky-400",     label: "Nearby",   labelBg: "bg-sky-50 dark:bg-sky-900/30",      labelText: "text-sky-700 dark:text-sky-400"      },
+    system:   { icon: FiInfo,        iconBg: "bg-amber-100 dark:bg-amber-900/40",  iconColor: "text-amber-600 dark:text-amber-400",  accent: "bg-amber-400",   label: "System",   labelBg: "bg-amber-50 dark:bg-amber-900/30",  labelText: "text-amber-700 dark:text-amber-400"  },
 };
 
 const DUMMY: Notification[] = [
@@ -85,7 +85,7 @@ export default function Notifications() {
     const hasRead = notifications.some((n) => n.read);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 pb-24 sm:p-5">
+        <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 pb-24 sm:p-5">
             <div className="mx-auto max-w-2xl space-y-4">
 
                 {/* ── header ── */}
@@ -111,7 +111,6 @@ export default function Notifications() {
                             )}
                         </div>
 
-                        {/* filter tabs */}
                         <div className="mt-4 flex items-center gap-1 rounded-xl bg-white/15 p-1 ring-1 ring-white/20">
                             {(["all", "unread"] as FilterTab[]).map((tab) => (
                                 <button
@@ -136,7 +135,7 @@ export default function Notifications() {
                 {/* ── actions bar ── */}
                 {(unreadCount > 0 || hasRead) && (
                     <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-400 dark:text-slate-500">
                             {filtered.length} {activeTab === "unread" ? "unread" : "notification" + (filtered.length !== 1 ? "s" : "")}
                         </p>
                         <div className="flex items-center gap-2">
@@ -144,7 +143,7 @@ export default function Notifications() {
                                 <button
                                     type="button"
                                     onClick={markAllRead}
-                                    className="flex items-center gap-1.5 rounded-xl border border-teal-200 bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50"
+                                    className="flex items-center gap-1.5 rounded-xl border border-teal-200 dark:border-teal-700/50 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-400 shadow-sm transition hover:bg-teal-50 dark:hover:bg-teal-900/20"
                                 >
                                     <FiCheck size={12} />
                                     Mark all read
@@ -154,7 +153,7 @@ export default function Notifications() {
                                 <button
                                     type="button"
                                     onClick={clearRead}
-                                    className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm transition hover:bg-slate-50"
+                                    className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
                                     <FiX size={12} />
                                     Clear read
@@ -172,7 +171,7 @@ export default function Notifications() {
                             if (items.length === 0) return null;
                             return (
                                 <div key={group} className="space-y-2">
-                                    <p className="px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                                    <p className="px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                         {group}
                                     </p>
                                     {items.map((n) => (
@@ -183,15 +182,14 @@ export default function Notifications() {
                         })}
                     </div>
                 ) : (
-                    /* ── empty state ── */
-                    <div className="flex flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white py-14 text-center shadow-sm">
-                        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-400">
+                    <div className="flex flex-col items-center gap-3 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-14 text-center shadow-sm">
+                        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-900/30 text-teal-400">
                             <FiBell size={24} />
                         </span>
-                        <p className="text-sm font-semibold text-slate-700">
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                             {activeTab === "unread" ? "No unread notifications" : "All caught up"}
                         </p>
-                        <p className="max-w-[220px] text-xs leading-relaxed text-slate-400">
+                        <p className="max-w-[220px] text-xs leading-relaxed text-slate-400 dark:text-slate-500">
                             {activeTab === "unread"
                                 ? "You've read everything. Switch to All to see past activity."
                                 : "You'll be notified about timing updates and reports here."}
@@ -200,7 +198,7 @@ export default function Notifications() {
                             <button
                                 type="button"
                                 onClick={() => setActiveTab("all")}
-                                className="mt-1 rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+                                className="mt-1 rounded-xl border border-teal-200 dark:border-teal-700/50 bg-teal-50 dark:bg-teal-900/20 px-4 py-2 text-xs font-semibold text-teal-700 dark:text-teal-400 transition hover:bg-teal-100 dark:hover:bg-teal-900/30"
                             >
                                 View all
                             </button>
@@ -227,10 +225,10 @@ function NotifCard({ n, onRead, onDismiss }: {
             tabIndex={0}
             onClick={() => onRead(n.id)}
             onKeyDown={(e) => e.key === "Enter" && onRead(n.id)}
-            className={`relative flex cursor-pointer gap-3 overflow-hidden rounded-2xl border bg-white px-4 py-3.5 shadow-sm transition-all duration-200 ${
+            className={`relative flex cursor-pointer gap-3 overflow-hidden rounded-2xl border bg-white dark:bg-slate-900 px-4 py-3.5 shadow-sm transition-all duration-200 ${
                 n.read
-                    ? "border-slate-100 opacity-60 hover:opacity-80 hover:shadow-md"
-                    : "border-slate-200 hover:-translate-y-0.5 hover:shadow-md"
+                    ? "border-slate-100 dark:border-slate-700/50 opacity-60 hover:opacity-80 hover:shadow-md"
+                    : "border-slate-200 dark:border-slate-700 hover:-translate-y-0.5 hover:shadow-md"
             }`}
         >
             {/* left accent bar */}
@@ -244,18 +242,17 @@ function NotifCard({ n, onRead, onDismiss }: {
             {/* content */}
             <div className="flex-1 min-w-0 pl-1 pr-5">
                 <div className="flex items-center gap-2">
-                    <p className={`truncate text-sm leading-snug text-slate-800 ${n.read ? "font-semibold" : "font-bold"}`}>
+                    <p className={`truncate text-sm leading-snug text-slate-800 dark:text-slate-100 ${n.read ? "font-semibold" : "font-bold"}`}>
                         {n.title}
                     </p>
-                    {/* pulsing unread dot — opacity toggle avoids reflow */}
                     <span className={`relative flex h-2 w-2 shrink-0 transition-opacity duration-200 ${n.read ? "opacity-0" : "opacity-100"}`}>
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-500" />
                     </span>
                 </div>
-                <p className="mt-0.5 text-xs leading-relaxed text-slate-500 line-clamp-2">{n.body}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-2">{n.body}</p>
                 <div className="mt-1.5 flex items-center gap-2">
-                    <p className="text-[10px] font-semibold text-slate-400">{n.time}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">{n.time}</p>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${meta.labelBg} ${meta.labelText}`}>
                         {meta.label}
                     </span>
@@ -266,7 +263,7 @@ function NotifCard({ n, onRead, onDismiss }: {
             <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onDismiss(n.id); }}
-                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500"
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-lg text-slate-300 dark:text-slate-600 transition hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-500 dark:hover:text-slate-300"
                 aria-label="Dismiss"
             >
                 <FiTrash2 size={12} />

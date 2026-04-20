@@ -149,7 +149,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
 
     return (
         <>
-            <div className='min-h-full bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 sm:p-5'>
+            <div className='min-h-full bg-gradient-to-b from-teal-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-5'>
                 <div className='mx-auto max-w-5xl space-y-4 pb-8'>
                     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 p-5 text-white shadow-[0_20px_45px_-20px_rgba(14,116,144,0.75)] sm:p-6">
                         <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/20 blur-2xl"></div>
@@ -203,21 +203,21 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 shadow-sm">
-                        <p className="text-sm text-amber-900">
+                    <div className="rounded-2xl border border-amber-200 dark:border-amber-700/40 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 shadow-sm">
+                        <p className="text-sm text-amber-900 dark:text-amber-300">
                             <span className="font-semibold">Disclaimer:</span> Timings are algorithmically calculated and may differ slightly from local noticeboards. Please verify with the mosque for exact schedules.
                         </p>
                     </div>
 
-                    <div className='overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.55)] backdrop-blur'>
-                        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-cyan-50 p-5">
+                    <div className='overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.55)] backdrop-blur'>
+                        <div className="border-b border-slate-100 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-cyan-50 dark:from-slate-800 dark:to-slate-800 p-5">
                             <div className="flex flex-wrap items-start justify-between gap-2">
                                 <div>
-                                    <h2 className='text-xl font-bold text-slate-900 sm:text-2xl'>Prayer Times</h2>
-                                    <p className="mt-1 text-sm text-slate-600">Aadhan and congregation times for {place.name}.</p>
+                                    <h2 className='text-xl font-bold text-slate-900 dark:text-slate-100 sm:text-2xl'>Prayer Times</h2>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Aadhan and congregation times for {place.name}.</p>
                                 </div>
                                 {hijriDate && (
-                                    <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold text-cyan-700 shadow-sm">
+                                    <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-cyan-200 dark:border-cyan-700/50 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-400 shadow-sm">
                                         <FiClock size={11} className="shrink-0" />
                                         {hijriDate.day} {hijriDate.month.en} {hijriDate.year} AH
                                     </span>
@@ -229,28 +229,28 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                             {isLoadingTimings && (
                                 <div className="space-y-3 py-2">
                                     {[1, 2, 3].map((placeholder) => (
-                                        <div key={placeholder} className="animate-pulse rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                                            <div className="h-4 w-24 rounded bg-slate-200"></div>
+                                        <div key={placeholder} className="animate-pulse rounded-2xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+                                            <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
                                             <div className="mt-3 grid grid-cols-2 gap-2">
-                                                <div className="h-12 rounded-lg bg-slate-200"></div>
-                                                <div className="h-12 rounded-lg bg-slate-200"></div>
+                                                <div className="h-12 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
+                                                <div className="h-12 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
                                             </div>
                                         </div>
                                     ))}
-                                    <p className="text-center text-sm font-medium text-slate-500">Loading prayer times...</p>
+                                    <p className="text-center text-sm font-medium text-slate-500 dark:text-slate-400">Loading prayer times...</p>
                                 </div>
                             )}
 
                             {!isLoadingTimings && prayerTimings && (
                                 <div className="space-y-3">
                                     {nextEvent && (
-                                        <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 via-sky-50 to-teal-50 p-4 shadow-sm">
-                                            <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-cyan-700">Next Event</p>
+                                        <div className="rounded-2xl border border-cyan-200 dark:border-cyan-700/40 bg-gradient-to-r from-cyan-50 via-sky-50 to-teal-50 dark:from-cyan-900/20 dark:via-sky-900/20 dark:to-teal-900/20 p-4 shadow-sm">
+                                            <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-cyan-700 dark:text-cyan-400">Next Event</p>
                                             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                                                <p className="text-sm font-bold text-slate-900 sm:text-base">
+                                                <p className="text-sm font-bold text-slate-900 dark:text-slate-100 sm:text-base">
                                                     {nextEvent.prayerName} {nextEvent.type} at {nextEvent.displayTime}
                                                 </p>
-                                                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-cyan-800 ring-1 ring-cyan-200">
+                                                <span className="rounded-full bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-cyan-800 dark:text-cyan-300 ring-1 ring-cyan-200 dark:ring-cyan-700/50">
                                                     {formatTimeUntil(nextEvent.minutesAway)}
                                                     {nextEvent.isTomorrow ? " tomorrow" : ""}
                                                 </span>
@@ -272,36 +272,36 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                                 key={row.key}
                                                 className={`rounded-2xl border p-4 transition hover:shadow-sm ${
                                                     isNextPrayer
-                                                        ? "border-cyan-300 bg-gradient-to-r from-cyan-50/80 to-sky-50/80 shadow-[0_16px_35px_-25px_rgba(8,145,178,0.85)]"
-                                                        : "border-slate-200 bg-gradient-to-r from-white to-slate-50"
+                                                        ? "border-cyan-300 dark:border-cyan-600 bg-gradient-to-r from-cyan-50/80 to-sky-50/80 dark:from-cyan-900/20 dark:to-sky-900/20 shadow-[0_16px_35px_-25px_rgba(8,145,178,0.85)]"
+                                                        : "border-slate-200 dark:border-slate-700 bg-gradient-to-r from-white to-slate-50 dark:from-slate-900 dark:to-slate-900"
                                                 }`}
                                             >
                                                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                                    <h3 className="text-base font-bold text-slate-800">{row.prayer}</h3>
+                                                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">{row.prayer}</h3>
                                                     <div className="flex items-center gap-2">
                                                         {isNextPrayer && (
                                                             <span className="rounded-full bg-cyan-600 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
                                                                 Next Up
                                                             </span>
                                                         )}
-                                                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                                                        <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
                                                             Daily
                                                         </span>
                                                     </div>
                                                 </div>
 
                                                 <div className="relative">
-                                                    <div className="pointer-events-none absolute left-7 right-7 top-5 hidden border-t border-dashed border-slate-300 sm:block"></div>
+                                                    <div className="pointer-events-none absolute left-7 right-7 top-5 hidden border-t border-dashed border-slate-300 dark:border-slate-600 sm:block"></div>
                                                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
                                                         <div
                                                             className={`rounded-xl border px-3 py-3 transition ${
                                                                 highlightAadhan
-                                                                    ? "border-sky-300 bg-sky-100 shadow-sm"
-                                                                    : "border-sky-100 bg-sky-50"
+                                                                    ? "border-sky-300 dark:border-sky-600 bg-sky-100 dark:bg-sky-900/30 shadow-sm"
+                                                                    : "border-sky-100 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-900/20"
                                                             }`}
                                                         >
                                                             <div className="flex items-center justify-between">
-                                                                <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+                                                                <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-400">
                                                                     <FiClock size={12} />
                                                                     Aadhan
                                                                 </p>
@@ -311,18 +311,18 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <p className="mt-1 text-base font-bold text-slate-900">{row.adhan}</p>
+                                                            <p className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">{row.adhan}</p>
                                                         </div>
 
                                                         <div
                                                             className={`rounded-xl border px-3 py-3 transition ${
                                                                 highlightCongregation
-                                                                    ? "border-emerald-300 bg-emerald-100 shadow-sm"
-                                                                    : "border-emerald-100 bg-emerald-50"
+                                                                    ? "border-emerald-300 dark:border-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 shadow-sm"
+                                                                    : "border-emerald-100 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/20"
                                                             }`}
                                                         >
                                                             <div className="flex items-center justify-between">
-                                                                <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                                                                <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                                                                     <FiUsers size={12} />
                                                                     Congregation
                                                                 </p>
@@ -332,13 +332,13 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <p className="mt-1 text-base font-bold text-slate-900">{row.congregation}</p>
+                                                            <p className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">{row.congregation}</p>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {congregationGap !== null && (
-                                                    <p className="mt-3 text-[11px] font-medium text-slate-500">
+                                                    <p className="mt-3 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                                         Congregation starts {congregationGap === 0 ? "at the same time" : `${congregationGap} minutes after Aadhan`}.
                                                     </p>
                                                 )}
@@ -346,14 +346,14 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                         );
                                     })}
 
-                                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
                                         Visual guide: blue blocks are Aadhan and green blocks are congregation for each prayer.
                                     </div>
                                 </div>
                             )}
 
                             {!isLoadingTimings && timingsError && (
-                                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+                                <div className="rounded-2xl border border-rose-200 dark:border-rose-700/40 bg-rose-50 dark:bg-rose-900/20 p-4 text-sm text-rose-800 dark:text-rose-300">
                                     <p>{timingsError}</p>
                                     <button
                                         type="button"
@@ -367,8 +367,8 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-sky-50 p-4">
-                        <p className="text-sm text-cyan-900">
+                    <div className="rounded-2xl border border-cyan-200 dark:border-cyan-700/40 bg-gradient-to-r from-cyan-50 to-sky-50 dark:from-cyan-900/20 dark:to-sky-900/20 p-4">
+                        <p className="text-sm text-cyan-900 dark:text-cyan-300">
                             <span className="font-semibold">Help improve:</span> If you notice a mismatch, submit an update or report. Community feedback keeps this mosque schedule accurate.
                         </p>
                     </div>
@@ -387,7 +387,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         <button
                             type='button'
                             onClick={report}
-                            className='inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-600 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-rose-50 hover:border-rose-300 active:translate-y-0'
+                            className='inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-200 dark:border-rose-700/50 bg-white dark:bg-slate-900 px-5 py-3 text-sm font-semibold text-rose-600 dark:text-rose-400 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:border-rose-300 dark:hover:border-rose-600 active:translate-y-0'
                         >
                             <FiAlertTriangle size={15} />
                             Report Issue

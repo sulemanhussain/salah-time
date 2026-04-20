@@ -28,7 +28,6 @@ const normalizeTimeValue = (value?: string): string => {
     return value.slice(0, 5);
 };
 
-
 const defaultCongregationTime = (prayer: EditablePrayer, adhan: string): string => {
     if (!adhan) return "";
     if (prayer === "Maghrib") return adhan;
@@ -43,12 +42,13 @@ const getPrayerHint = (prayer: EditablePrayer): string => {
 export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, onClose }: UpdateTimingModalProps) {
     const closeButtonClassName =
         "absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 backdrop-blur transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:right-5 sm:top-5";
+
     const buildTimings = (pt: PrayerTime | null): Record<EditablePrayer, PrayerTimingInput> => {
-        const fajr = normalizeTimeValue(pt?.Fajr);
-        const dhuhr = normalizeTimeValue(pt?.Dhuhr);
-        const asr = normalizeTimeValue(pt?.Asr);
+        const fajr    = normalizeTimeValue(pt?.Fajr);
+        const dhuhr   = normalizeTimeValue(pt?.Dhuhr);
+        const asr     = normalizeTimeValue(pt?.Asr);
         const maghrib = normalizeTimeValue(pt?.Maghrib);
-        const isha = normalizeTimeValue(pt?.Isha);
+        const isha    = normalizeTimeValue(pt?.Isha);
         return {
             Fajr:    { adhan: fajr,    congregation: defaultCongregationTime("Fajr",    fajr)    },
             Dhuhr:   { adhan: dhuhr,   congregation: defaultCongregationTime("Dhuhr",   dhuhr)   },
@@ -61,8 +61,8 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
     const [updatedTimings, setUpdatedTimings] = useState<Record<EditablePrayer, PrayerTimingInput>>(
         () => buildTimings(prayerTimings)
     );
-    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-    const [prevTimings, setPrevTimings] = useState(prayerTimings);
+    const [prevIsOpen, setPrevIsOpen]     = useState(isOpen);
+    const [prevTimings, setPrevTimings]   = useState(prayerTimings);
 
     if (isOpen && (prevIsOpen !== isOpen || prevTimings !== prayerTimings)) {
         setPrevIsOpen(isOpen);
@@ -73,35 +73,24 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
     function handleTimeChange(prayer: EditablePrayer, field: TimingField, value: string) {
         setUpdatedTimings((previous) => ({
             ...previous,
-            [prayer]: {
-                ...previous[prayer],
-                [field]: value,
-            },
+            [prayer]: { ...previous[prayer], [field]: value },
         }));
     }
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        console.log("Updated prayer timings:", {
-            mosqueName,
-            timings: updatedTimings,
-        });
+        console.log("Updated prayer timings:", { mosqueName, timings: updatedTimings });
         onClose();
     }
 
     return createPortal(
         <Modal isOpen={isOpen} fullPage>
-            <div className="relative min-h-full overflow-x-hidden bg-gradient-to-b from-teal-50 via-white to-cyan-50 shadow-2xl">
-                <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-cyan-300/40 blur-2xl"></div>
-                <div className="pointer-events-none absolute top-10 -left-14 h-32 w-32 rounded-full bg-teal-200/50 blur-2xl"></div>
+            <div className="relative min-h-full overflow-x-hidden bg-gradient-to-b from-teal-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 shadow-2xl">
+                <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-cyan-300/40 blur-2xl" />
+                <div className="pointer-events-none absolute top-10 -left-14 h-32 w-32 rounded-full bg-teal-200/50 blur-2xl" />
 
                 <div className="top-0 z-20 border-b border-cyan-900/20 bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 pb-5 pt-6 text-white shadow-[0_16px_36px_-24px_rgba(14,116,144,0.95)] sm:px-6">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className={closeButtonClassName}
-                        aria-label="Close"
-                    >
+                    <button type="button" onClick={onClose} className={closeButtonClassName} aria-label="Close">
                         <FiX size={18} />
                     </button>
                     <span className="inline-flex rounded-full bg-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]">
@@ -110,9 +99,7 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                     <h3 className="mt-3 text-2xl font-extrabold leading-tight">Update Salah Timings</h3>
                     <p className="mt-1 text-sm text-cyan-100">Review and submit corrected mosque timings for your local community.</p>
                     <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-lg">
-                            🕌
-                        </div>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-lg">🕌</div>
                         <div className="min-w-0">
                             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-cyan-100">Updating timings for</p>
                             <p className="truncate text-sm font-bold text-white">{mosqueName}</p>
@@ -121,29 +108,25 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
-                    <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 shadow-sm">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Before You Update</p>
+                    <div className="rounded-2xl border border-cyan-200 dark:border-cyan-700/40 bg-gradient-to-r from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 px-4 py-3 shadow-sm">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Before You Update</p>
                         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            <div className="rounded-xl border border-sky-100 bg-white/90 px-3 py-2">
-                                <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
-                                    <FiClock size={12} />
-                                    Aadhan
+                            <div className="rounded-xl border border-sky-100 dark:border-sky-800/50 bg-white/90 dark:bg-slate-800/60 px-3 py-2">
+                                <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-400">
+                                    <FiClock size={12} /> Aadhan
                                 </p>
-                                <p className="mt-1 text-xs text-slate-600">Set the mosque call-to-prayer time for each Salah.</p>
+                                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Set the mosque call-to-prayer time for each Salah.</p>
                             </div>
-                            <div className="rounded-xl border border-emerald-100 bg-white/90 px-3 py-2">
-                                <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                                    <FiUsers size={12} />
-                                    Congregation
+                            <div className="rounded-xl border border-emerald-100 dark:border-emerald-800/50 bg-white/90 dark:bg-slate-800/60 px-3 py-2">
+                                <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                                    <FiUsers size={12} /> Congregation
                                 </p>
-                                <p className="mt-1 text-xs text-slate-600">Set the Jama'ah start time after Aadhan.</p>
+                                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Set the Jama'ah start time after Aadhan.</p>
                             </div>
                         </div>
-                        <p className="mt-3 inline-flex items-start gap-1.5 text-xs text-slate-600">
-                            <FiInfo size={13} className="mt-0.5 shrink-0 text-cyan-700" />
-                            <span>
-                            Use the local mosque noticeboard values in 24-hour time format.
-                            </span>
+                        <p className="mt-3 inline-flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <FiInfo size={13} className="mt-0.5 shrink-0 text-cyan-700 dark:text-cyan-400" />
+                            <span>Use the local mosque noticeboard values in 24-hour time format.</span>
                         </p>
                     </div>
 
@@ -151,64 +134,64 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                         {EDITABLE_PRAYERS.map((prayer) => (
                             <div
                                 key={prayer}
-                                className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm transition hover:border-cyan-300 hover:shadow-[0_16px_30px_-24px_rgba(6,182,212,0.95)]"
+                                className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-4 shadow-sm transition hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-[0_16px_30px_-24px_rgba(6,182,212,0.95)]"
                             >
                                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                    <p className="text-sm font-bold text-slate-800 sm:text-base">{prayer}</p>
-                                    <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-cyan-700 ring-1 ring-cyan-200">
+                                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100 sm:text-base">{prayer}</p>
+                                    <span className="rounded-full bg-cyan-50 dark:bg-cyan-900/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-cyan-700 dark:text-cyan-400 ring-1 ring-cyan-200 dark:ring-cyan-700/50">
                                         Time Entry
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                                    <div className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-2.5">
-                                        <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
+                                    <div className="rounded-xl border border-sky-100 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-900/20 px-3 py-2.5">
+                                        <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-400">
                                             Aadhan
                                             <input
                                                 type="time"
                                                 value={updatedTimings[prayer].adhan}
-                                                onChange={(event) => handleTimeChange(prayer, "adhan", event.target.value)}
-                                                className="h-11 rounded-lg border border-sky-200 bg-white px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200"
+                                                onChange={(e) => handleTimeChange(prayer, "adhan", e.target.value)}
+                                                className="h-11 rounded-lg border border-sky-200 dark:border-sky-700/50 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-800 dark:text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-900/50"
                                                 required
                                             />
                                         </label>
                                     </div>
-                                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5">
-                                        <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                                    <div className="rounded-xl border border-emerald-100 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2.5">
+                                        <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                                             Congregation
                                             <input
                                                 type="time"
                                                 value={updatedTimings[prayer].congregation}
-                                                onChange={(event) => handleTimeChange(prayer, "congregation", event.target.value)}
-                                                className="h-11 rounded-lg border border-emerald-200 bg-white px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200"
+                                                onChange={(e) => handleTimeChange(prayer, "congregation", e.target.value)}
+                                                className="h-11 rounded-lg border border-emerald-200 dark:border-emerald-700/50 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-800 dark:text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-900/50"
                                                 required
                                             />
                                         </label>
                                     </div>
                                 </div>
-                                <p className="mt-2 text-[11px] text-slate-500">{getPrayerHint(prayer)}</p>
+                                <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">{getPrayerHint(prayer)}</p>
                             </div>
                         ))}
                     </div>
 
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">
                         Tip: Congregation defaults to 15 minutes after Aadhan (except Maghrib).
                     </div>
 
-                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+                    <div className="sticky bottom-0 z-10 -mx-4 border-t border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                         <div className="mx-auto flex max-w-5xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="h-11 rounded-xl border border-cyan-200 bg-white px-5 text-sm font-semibold text-cyan-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md active:translate-y-0"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="h-11 rounded-xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 text-sm font-semibold text-white ring-1 ring-white/20 shadow-[0_16px_30px_-16px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:from-teal-800 hover:via-cyan-800 hover:to-sky-800 hover:shadow-[0_20px_34px_-16px_rgba(14,116,144,0.95)] active:translate-y-0"
-                        >
-                            Save Updated Timings
-                        </button>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="h-11 rounded-xl border border-cyan-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-5 text-sm font-semibold text-cyan-900 dark:text-slate-200 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 dark:hover:bg-slate-700 hover:shadow-md active:translate-y-0"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="h-11 rounded-xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 text-sm font-semibold text-white ring-1 ring-white/20 shadow-[0_16px_30px_-16px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:from-teal-800 hover:via-cyan-800 hover:to-sky-800 hover:shadow-[0_20px_34px_-16px_rgba(14,116,144,0.95)] active:translate-y-0"
+                            >
+                                Save Updated Timings
+                            </button>
                         </div>
                     </div>
                 </form>
