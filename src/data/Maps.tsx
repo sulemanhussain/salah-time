@@ -1,3 +1,5 @@
+import { createMosquesBatch } from './mosque-details';
+
 interface PlaceLocation {
     lat: number;
     lng: number;
@@ -40,6 +42,19 @@ interface NearbyPlacesCacheEntry {
     };
     payload: PaginatedPlacesResponse;
 }
+
+const syncMosquesToDb = (places: MapPlace[]): void => {
+    if (!places.length) return;
+    createMosquesBatch(places.map(place => ({
+        googlePlaceId: place.place_id,
+        name: place.name,
+        vicinity: place.vicinity,
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+        placeTypes: place.types?.join(','),
+        isActive: true,
+    }))).catch((err: unknown) => console.warn('Failed to sync mosques to DB:', err));
+};
 
 const MAPS_NEARBY_CACHE_PREFIX = 'maps-nearby-v1';
 const MAPS_NEARBY_CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
@@ -155,6 +170,7 @@ export const GetMapLocationInfo = async(
         };
 
         writeNearbyCache(cacheKey, coordinates, radius, payload);
+        syncMosquesToDb(payload.results);
         return payload;
     } catch (error) {
         console.error('Error fetching nearby places:', error);
@@ -205,11 +221,13 @@ export const GetMapLocationInfoNextPage = async(
             throw new Error(`Google Maps API error: ${data.status}`);
         }
 
-        return {
+        const nextPayload: PaginatedPlacesResponse = {
             results: data.results || [],
             nextPageToken: data.next_page_token,
             hasNextPage: !!data.next_page_token,
         };
+        syncMosquesToDb(nextPayload.results);
+        return nextPayload;
     } catch (error) {
         console.error('Error fetching next page of places:', error);
         throw error;

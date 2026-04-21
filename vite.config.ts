@@ -75,6 +75,10 @@ export default defineConfig({
       '/maps/api': {
         target: "https://maps.googleapis.com",
         changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:5192',
+        changeOrigin: true,
       }
     },
     host: true
