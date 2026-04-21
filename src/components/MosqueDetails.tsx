@@ -11,6 +11,31 @@ import {
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
 import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
+import { getMosques } from "../data/mosque-details";
+import { getTimingUpdatesByMosqueId, Prayer, TimingUpdateStatus } from "../data/timing-updates";
+
+const PRAYER_ENUM_TO_KEY: Record<Prayer, { key: string; name: string }> = {
+    [Prayer.Fajr]:   { key: 'fajr',    name: PRAYER_NAMES.FAJR },
+    [Prayer.Dhuhr]:  { key: 'dhuhr',   name: PRAYER_NAMES.DHUHR },
+    [Prayer.Asr]:    { key: 'asr',     name: PRAYER_NAMES.ASR },
+    [Prayer.Maghrib]:{ key: 'maghrib', name: PRAYER_NAMES.MAGHRIB },
+    [Prayer.Isha]:   { key: 'isha',    name: PRAYER_NAMES.ISHA },
+};
+
+function buildModalInitialTimings(updates: TimingUpdate[]): Partial<Record<string, { adhan: string; congregation: string }>> {
+    const result: Partial<Record<string, { adhan: string; congregation: string }>> = {};
+    for (const u of updates) {
+        if (u.prayer == null || !u.aadhan) continue;
+        const meta = PRAYER_ENUM_TO_KEY[u.prayer];
+        if (!meta) continue;
+        result[meta.name] = {
+            adhan: u.aadhan.slice(0, 5),
+            congregation: u.congregation ? u.congregation.slice(0, 5) : u.aadhan.slice(0, 5),
+        };
+    }
+    return result;
+}
+import type { TimingUpdate } from "../data/timing-updates";
 import UpdateTimingModal from "./UpdateTimingModal";
 import UpdateMethodModal from "./UpdateMethodModal";
 import ReportTimingModal from "./ReportTimingModal";
@@ -30,6 +55,8 @@ type PrayerRow = {
 export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [prayerTimings, setPrayerTimings] = useState<PrayerTime | null>(null);
     const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
+    const [dbTimingUpdates, setDbTimingUpdates] = useState<TimingUpdate[] | null>(null);
+    const [mosqueDbId, setMosqueDbId] = useState<string | undefined>(undefined);
     const [isLoadingTimings, setIsLoadingTimings] = useState(false);
     const [timingsError, setTimingsError] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<"method" | "update" | "report" | null>(null);
@@ -48,8 +75,25 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
         if (place?.geometry?.location) {
             setIsLoadingTimings(true);
             setTimingsError(null);
+            setPrayerTimings(null);
+            setDbTimingUpdates(null);
+            setMosqueDbId(undefined);
             const fetchTimings = async () => {
                 try {
+                    // Try DB timings first
+                    const allMosques = await getMosques();
+                    const mosque = allMosques.find(m => m.googlePlaceId === place.place_id);
+                    if (mosque?.id) {
+                        setMosqueDbId(mosque.id);
+                        const updates = await getTimingUpdatesByMosqueId(mosque.id);
+                        const sortedList = updates.sort((a, b) => a.prayer - b.prayer);
+                        if (sortedList.length > 0) {
+                            setDbTimingUpdates(sortedList);
+                            return;
+                        }
+                    }
+
+                    // Fallback: external API
                     const coordinates = [
                         {
                             latitude: place.geometry.location.lat,
@@ -74,50 +118,69 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
         setActiveModal(null);
     }, [place?.place_id]);
 
-    const prayerRows = useMemo<PrayerRow[]>(() => prayerTimings
-        ? [
-              {
-                  key: "fajr",
-                  prayer: PRAYER_NAMES.FAJR,
-                  adhan: formatPrayerTime(prayerTimings.Fajr),
-                  congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Fajr, 15)),
-                  adhanMinutes: parseTimeToMinutes(prayerTimings.Fajr),
-                  congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Fajr, 15)),
-              },
-              {
-                  key: "dhuhr",
-                  prayer: PRAYER_NAMES.DHUHR,
-                  adhan: formatPrayerTime(prayerTimings.Dhuhr),
-                  congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Dhuhr, 15)),
-                  adhanMinutes: parseTimeToMinutes(prayerTimings.Dhuhr),
-                  congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Dhuhr, 15)),
-              },
-              {
-                  key: "asr",
-                  prayer: PRAYER_NAMES.ASR,
-                  adhan: formatPrayerTime(prayerTimings.Asr),
-                  congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Asr, 15)),
-                  adhanMinutes: parseTimeToMinutes(prayerTimings.Asr),
-                  congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Asr, 15)),
-              },
-              {
-                  key: "maghrib",
-                  prayer: PRAYER_NAMES.MAGHRIB,
-                  adhan: formatPrayerTime(prayerTimings.Maghrib),
-                  congregation: formatPrayerTime(prayerTimings.Maghrib),
-                  adhanMinutes: parseTimeToMinutes(prayerTimings.Maghrib),
-                  congregationMinutes: parseTimeToMinutes(prayerTimings.Maghrib),
-              },
-              {
-                  key: "isha",
-                  prayer: PRAYER_NAMES.ISHA,
-                  adhan: formatPrayerTime(prayerTimings.Isha),
-                  congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Isha, 15)),
-                  adhanMinutes: parseTimeToMinutes(prayerTimings.Isha),
-                  congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Isha, 15)),
-              },
-          ]
-        : [], [prayerTimings]);
+    const prayerRows = useMemo<PrayerRow[]>(() => {
+        if (dbTimingUpdates && dbTimingUpdates.length > 0) {
+            return dbTimingUpdates
+                .map((u): PrayerRow | null => {
+                    if (u.prayer == null || !u.aadhan) return null;
+                    const meta = PRAYER_ENUM_TO_KEY[u.prayer];
+                    if (!meta) return null;
+                    return {
+                        key: meta.key,
+                        prayer: meta.name,
+                        adhan: formatPrayerTime(u.aadhan),
+                        congregation: u.congregation ? formatPrayerTime(u.congregation) : formatPrayerTime(u.aadhan),
+                        adhanMinutes: parseTimeToMinutes(u.aadhan),
+                        congregationMinutes: u.congregation ? parseTimeToMinutes(u.congregation) : parseTimeToMinutes(u.aadhan),
+                    };
+                })
+                .filter((r): r is PrayerRow => r !== null);
+        }
+
+        if (!prayerTimings) return [];
+        return [
+            {
+                key: "fajr",
+                prayer: PRAYER_NAMES.FAJR,
+                adhan: formatPrayerTime(prayerTimings.Fajr),
+                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Fajr, 15)),
+                adhanMinutes: parseTimeToMinutes(prayerTimings.Fajr),
+                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Fajr, 15)),
+            },
+            {
+                key: "dhuhr",
+                prayer: PRAYER_NAMES.DHUHR,
+                adhan: formatPrayerTime(prayerTimings.Dhuhr),
+                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Dhuhr, 15)),
+                adhanMinutes: parseTimeToMinutes(prayerTimings.Dhuhr),
+                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Dhuhr, 15)),
+            },
+            {
+                key: "asr",
+                prayer: PRAYER_NAMES.ASR,
+                adhan: formatPrayerTime(prayerTimings.Asr),
+                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Asr, 15)),
+                adhanMinutes: parseTimeToMinutes(prayerTimings.Asr),
+                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Asr, 15)),
+            },
+            {
+                key: "maghrib",
+                prayer: PRAYER_NAMES.MAGHRIB,
+                adhan: formatPrayerTime(prayerTimings.Maghrib),
+                congregation: formatPrayerTime(prayerTimings.Maghrib),
+                adhanMinutes: parseTimeToMinutes(prayerTimings.Maghrib),
+                congregationMinutes: parseTimeToMinutes(prayerTimings.Maghrib),
+            },
+            {
+                key: "isha",
+                prayer: PRAYER_NAMES.ISHA,
+                adhan: formatPrayerTime(prayerTimings.Isha),
+                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Isha, 15)),
+                adhanMinutes: parseTimeToMinutes(prayerTimings.Isha),
+                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Isha, 15)),
+            },
+        ];
+    }, [prayerTimings, dbTimingUpdates]);
 
     const nextEvent = useMemo(() => {
         const events = prayerRows.flatMap((row) => [
@@ -241,7 +304,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                 </div>
                             )}
 
-                            {!isLoadingTimings && prayerTimings && (
+                            {!isLoadingTimings && prayerRows.length > 0 && (
                                 <div className="space-y-3">
                                     {nextEvent && (
                                         <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 via-sky-50 to-teal-50 p-4 shadow-sm">
@@ -405,8 +468,11 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
             <UpdateTimingModal
                 isOpen={activeModal === "update"}
                 mosqueName={place.name}
+                mosqueId={mosqueDbId}
                 prayerTimings={prayerTimings}
+                initialTimings={dbTimingUpdates ? buildModalInitialTimings(dbTimingUpdates) : undefined}
                 onClose={closeActionModal}
+                onSaveSuccess={() => setFetchAttempt((a) => a + 1)}
             />
             <ReportTimingModal
                 isOpen={activeModal === "report"}

@@ -84,6 +84,15 @@ export async function upsertTimingUpdatesBatch(updates: TimingUpdate[]): Promise
   if (!response.ok) throw new Error(`Failed to batch upsert timing updates: ${response.status}`);
 }
 
+export async function createTimingUpdatesBulk(updates: TimingUpdate[]): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/TimingUpdateBatch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!response.ok) throw new Error(`Failed to create timing updates: ${response.status}`);
+}
+
 export async function deleteTimingUpdate(id: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/api/TimingUpdate/${id}`, {
     method: 'DELETE',

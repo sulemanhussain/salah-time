@@ -3,11 +3,20 @@ import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { FiClock, FiInfo, FiUsers, FiX } from "react-icons/fi";
 import type { PrayerTime } from "../data/adaan-timings";
+import { createTimingUpdatesBulk, Prayer } from "../data/timing-updates";
 import { addMinutesToTime } from "../utils/time";
 import Modal from "./Modal";
 
 type EditablePrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 type TimingField = "adhan" | "congregation";
+
+const PRAYER_NAME_TO_ENUM: Record<EditablePrayer, Prayer> = {
+    Fajr: Prayer.Fajr,
+    Dhuhr: Prayer.Dhuhr,
+    Asr: Prayer.Asr,
+    Maghrib: Prayer.Maghrib,
+    Isha: Prayer.Isha,
+};
 
 interface PrayerTimingInput {
     adhan: string;
@@ -19,8 +28,11 @@ const EDITABLE_PRAYERS: EditablePrayer[] = ["Fajr", "Dhuhr", "Asr", "Maghrib", "
 interface UpdateTimingModalProps {
     isOpen: boolean;
     mosqueName: string;
+    mosqueId?: string;
     prayerTimings: PrayerTime | null;
+    initialTimings?: Partial<Record<EditablePrayer, PrayerTimingInput>>;
     onClose: () => void;
+    onSaveSuccess?: () => void;
 }
 
 const normalizeTimeValue = (value?: string): string => {
@@ -40,34 +52,50 @@ const getPrayerHint = (prayer: EditablePrayer): string => {
     return "Congregation defaults to 15 minutes after Aadhan.";
 };
 
-export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, onClose }: UpdateTimingModalProps) {
+export default function UpdateTimingModal({ isOpen, mosqueName, mosqueId, prayerTimings, initialTimings, onClose, onSaveSuccess }: UpdateTimingModalProps) {
     const closeButtonClassName =
         "absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 backdrop-blur transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:right-5 sm:top-5";
-    const buildTimings = (pt: PrayerTime | null): Record<EditablePrayer, PrayerTimingInput> => {
+    const buildTimings = (pt: PrayerTime | null, overrides?: Partial<Record<EditablePrayer, PrayerTimingInput>>): Record<EditablePrayer, PrayerTimingInput> => {
         const fajr = normalizeTimeValue(pt?.Fajr);
         const dhuhr = normalizeTimeValue(pt?.Dhuhr);
         const asr = normalizeTimeValue(pt?.Asr);
         const maghrib = normalizeTimeValue(pt?.Maghrib);
         const isha = normalizeTimeValue(pt?.Isha);
-        return {
+        const base: Record<EditablePrayer, PrayerTimingInput> = {
             Fajr:    { adhan: fajr,    congregation: defaultCongregationTime("Fajr",    fajr)    },
             Dhuhr:   { adhan: dhuhr,   congregation: defaultCongregationTime("Dhuhr",   dhuhr)   },
             Asr:     { adhan: asr,     congregation: defaultCongregationTime("Asr",     asr)     },
             Maghrib: { adhan: maghrib, congregation: defaultCongregationTime("Maghrib", maghrib) },
             Isha:    { adhan: isha,    congregation: defaultCongregationTime("Isha",    isha)    },
         };
+        if (overrides) {
+            for (const prayer of EDITABLE_PRAYERS) {
+                if (overrides[prayer]) base[prayer] = overrides[prayer]!;
+            }
+        }
+        return base;
     };
 
     const [updatedTimings, setUpdatedTimings] = useState<Record<EditablePrayer, PrayerTimingInput>>(
-        () => buildTimings(prayerTimings)
+        () => buildTimings(prayerTimings, initialTimings)
     );
     const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
     const [prevTimings, setPrevTimings] = useState(prayerTimings);
+    const [prevInitial, setPrevInitial] = useState(initialTimings);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [saved, setSaved] = useState(false);
 
-    if (isOpen && (prevIsOpen !== isOpen || prevTimings !== prayerTimings)) {
+    if (!isOpen && prevIsOpen) {
+        setPrevIsOpen(false);
+        setSaved(false);
+    }
+
+    if (isOpen && (prevIsOpen !== isOpen || prevTimings !== prayerTimings || prevInitial !== initialTimings)) {
         setPrevIsOpen(isOpen);
         setPrevTimings(prayerTimings);
-        setUpdatedTimings(buildTimings(prayerTimings));
+        setPrevInitial(initialTimings);
+        setUpdatedTimings(buildTimings(prayerTimings, initialTimings));
     }
 
     function handleTimeChange(prayer: EditablePrayer, field: TimingField, value: string) {
@@ -80,13 +108,24 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
         }));
     }
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        console.log("Updated prayer timings:", {
-            mosqueName,
-            timings: updatedTimings,
-        });
-        onClose();
+        setSubmitError(null);
+        setIsSubmitting(true);
+        try {
+            const updates = EDITABLE_PRAYERS.map((prayer) => ({
+                mosqueId,
+                prayer: PRAYER_NAME_TO_ENUM[prayer],
+                aadhan: updatedTimings[prayer].adhan,
+                congregation: updatedTimings[prayer].congregation,
+            }));
+            await createTimingUpdatesBulk(updates);
+            setSaved(true);
+        } catch {
+            setSubmitError("Failed to save timings. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return createPortal(
@@ -120,7 +159,26 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
+                {saved && (
+                    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 p-8 text-center">
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl shadow-inner">
+                            🕌
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-extrabold text-slate-900">Details Updated Successfully!</h3>
+                            <p className="text-sm text-slate-600">Thank you for your contribution. Your update helps keep this mosque schedule accurate for the community.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => { onSaveSuccess?.(); onClose(); }}
+                            className="rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                        >
+                            Done
+                        </button>
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className={`space-y-4 p-4 sm:p-6 ${saved ? 'hidden' : ''}`}>
                     <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 shadow-sm">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Before You Update</p>
                         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -194,20 +252,28 @@ export default function UpdateTimingModal({ isOpen, mosqueName, prayerTimings, o
                         Tip: Congregation defaults to 15 minutes after Aadhan (except Maghrib).
                     </div>
 
+                    {submitError && (
+                        <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800">
+                            {submitError}
+                        </div>
+                    )}
+
                     <div className="sticky bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                         <div className="mx-auto flex max-w-5xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="h-11 rounded-xl border border-cyan-200 bg-white px-5 text-sm font-semibold text-cyan-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md active:translate-y-0"
+                            disabled={isSubmitting}
+                            className="h-11 rounded-xl border border-cyan-200 bg-white px-5 text-sm font-semibold text-cyan-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md active:translate-y-0 disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="h-11 rounded-xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 text-sm font-semibold text-white ring-1 ring-white/20 shadow-[0_16px_30px_-16px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:from-teal-800 hover:via-cyan-800 hover:to-sky-800 hover:shadow-[0_20px_34px_-16px_rgba(14,116,144,0.95)] active:translate-y-0"
+                            disabled={isSubmitting}
+                            className="h-11 rounded-xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 text-sm font-semibold text-white ring-1 ring-white/20 shadow-[0_16px_30px_-16px_rgba(14,116,144,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:from-teal-800 hover:via-cyan-800 hover:to-sky-800 hover:shadow-[0_20px_34px_-16px_rgba(14,116,144,0.95)] active:translate-y-0 disabled:opacity-50"
                         >
-                            Save Updated Timings
+                            {isSubmitting ? "Saving..." : "Save Updated Timings"}
                         </button>
                         </div>
                     </div>
