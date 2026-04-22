@@ -470,6 +470,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
             <ReportTimingModal
                 isOpen={activeModal === "report"}
                 mosqueName={place.name}
+                mosqueId={mosqueDbId}
                 onClose={closeActionModal}
             />
         </>

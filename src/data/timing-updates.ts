@@ -17,16 +17,17 @@ export enum TimingUpdateStatus {
 export interface TimingUpdate {
   id?: string;
   mosqueId?: string;
-  submittedBy?: string;
+  submittedBy?: string | null;
   prayer?: Prayer;
   aadhan?: string;
   congregation?: string;
   status?: TimingUpdateStatus;
   reviewerNotes?: string | null;
-  reviewedBy?: string;
-  reviewedAt?: string;
-  createdDate?: string;
-  modifiedDate?: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  createdDate?: string | null;
+  modifiedDate?: string | null;
+  mosqueDetails?: import('./mosque-details').MosqueDetails | null;
 }
 
 export async function getTimingUpdates(): Promise<TimingUpdate[]> {
@@ -75,13 +76,13 @@ export async function updateTimingUpdate(id: string, update: TimingUpdate): Prom
   if (!response.ok) throw new Error(`Failed to update timing update: ${response.status}`);
 }
 
-export async function upsertTimingUpdatesBatch(updates: TimingUpdate[]): Promise<void> {
-  const response = await fetch(`${BASE_URL}/api/TimingUpdateBatch`, {
-    method: 'POST',
+export async function patchTimingUpdateStatus(id: string, status: TimingUpdateStatus): Promise<void> {
+  const params = new URLSearchParams({ id, status: String(status) });
+  const response = await fetch(`${BASE_URL}/api/TimingUpdate?${params}`, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updates),
   });
-  if (!response.ok) throw new Error(`Failed to batch upsert timing updates: ${response.status}`);
+  if (!response.ok) throw new Error(`Failed to patch timing update status: ${response.status}`);
 }
 
 export async function createTimingUpdatesBulk(updates: TimingUpdate[]): Promise<void> {

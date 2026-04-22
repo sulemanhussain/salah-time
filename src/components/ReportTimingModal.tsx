@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRef } from "react";
 import {
@@ -13,30 +12,37 @@ import {
     FiX,
 } from "react-icons/fi";
 import Modal from "./Modal";
+import { createTimingReport, ReportReason } from "../data/timing-reports";
+
+const DUMMY_USER_ID = "019db723-71a6-752e-b4ba-d7676cf069d2";
 
 interface ReportTimingModalProps {
     isOpen: boolean;
     mosqueName: string;
+    mosqueId?: string;
     onClose: () => void;
 }
 
 const REPORT_REASONS = [
-    { id: "incorrect-adhan",        label: "Incorrect Aadhan time",      icon: "🕌" },
-    { id: "incorrect-congregation", label: "Incorrect Congregation time", icon: "🕋" },
-    { id: "missing-timing",         label: "Missing prayer timing",       icon: "⏰" },
-    { id: "outdated-schedule",      label: "Outdated mosque schedule",    icon: "📅" },
-    { id: "details-mismatch",       label: "Mosque details mismatch",     icon: "📍" },
-    { id: "other",                  label: "Other",                       icon: "💬" },
+    { id: "incorrect-adhan",        label: "Incorrect Aadhan time",      icon: "🕌", reason: ReportReason.IncorrectAdhan        },
+    { id: "incorrect-congregation", label: "Incorrect Congregation time", icon: "🕋", reason: ReportReason.IncorrectCongregation },
+    { id: "missing-timing",         label: "Missing prayer timing",       icon: "⏰", reason: ReportReason.MissingTiming         },
+    { id: "outdated-schedule",      label: "Outdated mosque schedule",    icon: "📅", reason: ReportReason.OutdatedSchedule      },
+    { id: "details-mismatch",       label: "Mosque details mismatch",     icon: "📍", reason: ReportReason.DetailsMismatch       },
+    { id: "other",                  label: "Other",                       icon: "💬", reason: ReportReason.Other                 },
 ] as const;
 
 type ReasonId = typeof REPORT_REASONS[number]["id"];
 
-export default function ReportTimingModal({ isOpen, mosqueName, onClose }: ReportTimingModalProps) {
+export default function ReportTimingModal({ isOpen, mosqueName, mosqueId, onClose }: ReportTimingModalProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedReason, setSelectedReason] = useState<ReasonId>(REPORT_REASONS[0].id);
     const [details, setDetails] = useState("");
     const [photo, setPhoto] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [saved, setSaved] = useState(false);
 
     function handlePhoto(file: File) {
         setPhoto(file);
@@ -60,20 +66,31 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
         completionPercent >= 30 ? "bg-rose-400" :
         "bg-rose-300";
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: { preventDefault(): void }) {
         event.preventDefault();
-        console.log("Timing report submitted:", {
-            mosqueName,
-            reason: selectedReason,
-            details,
-            photo: photo?.name ?? null,
-        });
-        onhandleClose();
+        setSubmitError(null);
+        setIsSubmitting(true);
+        try {
+            const reasonEntry = REPORT_REASONS.find((r) => r.id === selectedReason);
+            await createTimingReport({
+                mosqueId,
+                reportedBy: DUMMY_USER_ID,
+                reason: reasonEntry?.reason,
+                details,
+            });
+            setSaved(true);
+        } catch {
+            setSubmitError("Failed to submit report. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     function onhandleClose() {
         setSelectedReason(REPORT_REASONS[0].id);
         setDetails("");
+        setSubmitError(null);
+        setSaved(false);
         removePhoto();
         onClose();
     }
@@ -123,8 +140,27 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
                     </div>
                 </div>
 
+                {saved && (
+                    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 p-8 text-center">
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl shadow-inner">
+                            🕌
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-extrabold text-slate-900">Report Submitted</h3>
+                            <p className="text-sm text-slate-600">Thank you for helping keep this mosque's information accurate. Our team will review your report shortly.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onhandleClose}
+                            className="rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                        >
+                            Done
+                        </button>
+                    </div>
+                )}
+
                 {/* ── form ── */}
-                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6">
+                <form onSubmit={handleSubmit} className={`space-y-4 p-4 sm:p-6 ${saved ? 'hidden' : ''}`}>
                     <div className="mx-auto max-w-3xl space-y-4">
 
                         {/* guidance */}
@@ -273,21 +309,25 @@ export default function ReportTimingModal({ isOpen, mosqueName, onClose }: Repor
 
                     {/* ── footer ── */}
                     <div className="sticky bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+                        {submitError && (
+                            <p className="mb-2 text-center text-xs font-medium text-rose-600">{submitError}</p>
+                        )}
                         <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
                                 onClick={onhandleClose}
-                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
+                                disabled={isSubmitting}
+                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitDisabled}
+                                disabled={isSubmitDisabled || isSubmitting}
                                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-6 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(244,63,94,0.6)] ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:from-rose-600 hover:to-pink-600 hover:shadow-[0_12px_28px_-8px_rgba(244,63,94,0.7)] active:translate-y-0 disabled:cursor-not-allowed disabled:from-rose-200 disabled:to-pink-200 disabled:text-rose-400 disabled:shadow-none disabled:ring-0"
                             >
                                 <FiSend size={14} />
-                                Submit Report
+                                {isSubmitting ? "Submitting..." : "Submit Report"}
                             </button>
                         </div>
                     </div>

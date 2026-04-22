@@ -68,6 +68,15 @@ export async function updateMosque(id: string, mosque: MosqueDetails): Promise<v
   if (!response.ok) throw new Error(`Failed to update mosque: ${response.status}`);
 }
 
+export async function patchMosqueActiveStatus(id: string, isActive: boolean): Promise<void> {
+  const params = new URLSearchParams({ id, isActive: String(isActive) });
+  const response = await fetch(`${BASE_URL}/api/MosqueDetails?${params}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Failed to patch mosque active status: ${response.status}`);
+}
+
 export async function deleteMosque(id: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/api/MosqueDetails/${id}`, {
     method: 'DELETE',
