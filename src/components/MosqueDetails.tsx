@@ -11,8 +11,8 @@ import {
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
 import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
-import { getMosques } from "../data/mosque-details";
-import { getTimingUpdatesByMosqueId, Prayer, TimingUpdateStatus } from "../data/timing-updates";
+import { getMosqueByPlaceId } from "../data/mosque-details";
+import { getTimingUpdatesByMosqueId, Prayer } from "../data/timing-updates";
 
 const PRAYER_ENUM_TO_KEY: Record<Prayer, { key: string; name: string }> = {
     [Prayer.Fajr]:   { key: 'fajr',    name: PRAYER_NAMES.FAJR },
@@ -57,6 +57,7 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
     const [dbTimingUpdates, setDbTimingUpdates] = useState<TimingUpdate[] | null>(null);
     const [mosqueDbId, setMosqueDbId] = useState<string | undefined>(undefined);
+    const [isMosqueInactive, setIsMosqueInactive] = useState(false);
     const [isLoadingTimings, setIsLoadingTimings] = useState(false);
     const [timingsError, setTimingsError] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<"method" | "update" | "report" | null>(null);
@@ -78,31 +79,27 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
             setPrayerTimings(null);
             setDbTimingUpdates(null);
             setMosqueDbId(undefined);
+            setIsMosqueInactive(false);
             const fetchTimings = async () => {
                 try {
-                    // Try DB timings first
-                    const allMosques = await getMosques();
-                    const mosque = allMosques.find(m => m.googlePlaceId === place.place_id);
+                    const coordinates = [{ latitude: place.geometry.location.lat, longitude: place.geometry.location.lng }];
+                    const [mosque, externalTimings] = await Promise.all([
+                        getMosqueByPlaceId(place.place_id),
+                        getPrayerTimings(coordinates),
+                    ]);
+
+                    setPrayerTimings(externalTimings.timings);
+                    setHijriDate(externalTimings.hijriDate);
+
                     if (mosque?.id) {
                         setMosqueDbId(mosque.id);
+                        setIsMosqueInactive(mosque.isActive === false);
                         const updates = await getTimingUpdatesByMosqueId(mosque.id);
                         const sortedList = updates.sort((a, b) => a.prayer - b.prayer);
                         if (sortedList.length > 0) {
                             setDbTimingUpdates(sortedList);
-                            return;
                         }
                     }
-
-                    // Fallback: external API
-                    const coordinates = [
-                        {
-                            latitude: place.geometry.location.lat,
-                            longitude: place.geometry.location.lng,
-                        },
-                    ];
-                    const timings = await getPrayerTimings(coordinates);
-                    setPrayerTimings(timings.timings);
-                    setHijriDate(timings.hijriDate);
                 } catch (error) {
                     console.error('Error fetching prayer timings:', error);
                     setTimingsError("Unable to load timings right now. Please try again.");
@@ -119,67 +116,38 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
     }, [place?.place_id]);
 
     const prayerRows = useMemo<PrayerRow[]>(() => {
-        if (dbTimingUpdates && dbTimingUpdates.length > 0) {
-            return dbTimingUpdates
-                .map((u): PrayerRow | null => {
-                    if (u.prayer == null || !u.aadhan) return null;
-                    const meta = PRAYER_ENUM_TO_KEY[u.prayer];
-                    if (!meta) return null;
-                    return {
-                        key: meta.key,
-                        prayer: meta.name,
-                        adhan: formatPrayerTime(u.aadhan),
-                        congregation: u.congregation ? formatPrayerTime(u.congregation) : formatPrayerTime(u.aadhan),
-                        adhanMinutes: parseTimeToMinutes(u.aadhan),
-                        congregationMinutes: u.congregation ? parseTimeToMinutes(u.congregation) : parseTimeToMinutes(u.aadhan),
-                    };
-                })
-                .filter((r): r is PrayerRow => r !== null);
-        }
-
         if (!prayerTimings) return [];
-        return [
-            {
-                key: "fajr",
-                prayer: PRAYER_NAMES.FAJR,
-                adhan: formatPrayerTime(prayerTimings.Fajr),
-                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Fajr, 15)),
-                adhanMinutes: parseTimeToMinutes(prayerTimings.Fajr),
-                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Fajr, 15)),
-            },
-            {
-                key: "dhuhr",
-                prayer: PRAYER_NAMES.DHUHR,
-                adhan: formatPrayerTime(prayerTimings.Dhuhr),
-                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Dhuhr, 15)),
-                adhanMinutes: parseTimeToMinutes(prayerTimings.Dhuhr),
-                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Dhuhr, 15)),
-            },
-            {
-                key: "asr",
-                prayer: PRAYER_NAMES.ASR,
-                adhan: formatPrayerTime(prayerTimings.Asr),
-                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Asr, 15)),
-                adhanMinutes: parseTimeToMinutes(prayerTimings.Asr),
-                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Asr, 15)),
-            },
-            {
-                key: "maghrib",
-                prayer: PRAYER_NAMES.MAGHRIB,
-                adhan: formatPrayerTime(prayerTimings.Maghrib),
-                congregation: formatPrayerTime(prayerTimings.Maghrib),
-                adhanMinutes: parseTimeToMinutes(prayerTimings.Maghrib),
-                congregationMinutes: parseTimeToMinutes(prayerTimings.Maghrib),
-            },
-            {
-                key: "isha",
-                prayer: PRAYER_NAMES.ISHA,
-                adhan: formatPrayerTime(prayerTimings.Isha),
-                congregation: formatPrayerTime(addMinutesToTime(prayerTimings.Isha, 15)),
-                adhanMinutes: parseTimeToMinutes(prayerTimings.Isha),
-                congregationMinutes: parseTimeToMinutes(addMinutesToTime(prayerTimings.Isha, 15)),
-            },
-        ];
+
+        const dbByPrayer = new Map(
+            (dbTimingUpdates ?? [])
+                .filter((u) => u.prayer != null && u.aadhan)
+                .map((u) => [u.prayer as Prayer, u])
+        );
+
+        const CALCULATED_DEFAULTS: Record<Prayer, { adhan: string; congregation: string }> = {
+            [Prayer.Fajr]:    { adhan: prayerTimings.Fajr,    congregation: addMinutesToTime(prayerTimings.Fajr, 15) },
+            [Prayer.Dhuhr]:   { adhan: prayerTimings.Dhuhr,   congregation: addMinutesToTime(prayerTimings.Dhuhr, 15) },
+            [Prayer.Asr]:     { adhan: prayerTimings.Asr,     congregation: addMinutesToTime(prayerTimings.Asr, 15) },
+            [Prayer.Maghrib]: { adhan: prayerTimings.Maghrib, congregation: prayerTimings.Maghrib },
+            [Prayer.Isha]:    { adhan: prayerTimings.Isha,    congregation: addMinutesToTime(prayerTimings.Isha, 15) },
+        };
+
+        return Object.entries(PRAYER_ENUM_TO_KEY).map(([prayerEnumStr, meta]) => {
+            const prayerEnum = Number(prayerEnumStr) as Prayer;
+            const db = dbByPrayer.get(prayerEnum);
+            const adhan = db ? db.aadhan! : CALCULATED_DEFAULTS[prayerEnum].adhan;
+            const congregation = db
+                ? (db.congregation ?? db.aadhan!)
+                : CALCULATED_DEFAULTS[prayerEnum].congregation;
+            return {
+                key: meta.key,
+                prayer: meta.name,
+                adhan: formatPrayerTime(adhan),
+                congregation: formatPrayerTime(congregation),
+                adhanMinutes: parseTimeToMinutes(adhan),
+                congregationMinutes: parseTimeToMinutes(congregation),
+            };
+        });
     }, [prayerTimings, dbTimingUpdates]);
 
     const nextEvent = useMemo(() => {
@@ -272,6 +240,28 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                         </p>
                     </div>
 
+                    {isMosqueInactive && (
+                        <div className="rounded-2xl border border-rose-300 bg-gradient-to-r from-rose-50 to-pink-50 p-4 shadow-sm">
+                            <div className="flex items-start gap-3">
+                                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                                    <FiAlertTriangle size={16} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-rose-900">Mosque details under review</p>
+                                    <p className="mt-1 text-sm text-rose-700">
+                                        This mosque's information is currently being verified and may be inaccurate. Prayer times are temporarily hidden. Contact the mosque directly to confirm schedules.
+                                    </p>
+                                    <ul className="mt-2 space-y-0.5 text-xs text-rose-600">
+                                        <li>· Prayer times are unavailable until verification is complete</li>
+                                        <li>· Address or location details may not be up to date</li>
+                                        <li>· If you have accurate information, use the Report button to help resolve this</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {!isMosqueInactive && (
                     <div className='overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.55)] backdrop-blur'>
                         <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-cyan-50 p-5">
                             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -429,15 +419,18 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                             )}
                         </div>
                     </div>
+                    )}
 
-                    <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-sky-50 p-4">
-                        <p className="text-sm text-cyan-900">
-                            <span className="font-semibold">Help improve:</span> If you notice a mismatch, submit an update or report. Community feedback keeps this mosque schedule accurate.
-                        </p>
-                    </div>
+                    {!isMosqueInactive && (
+                        <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-sky-50 p-4">
+                            <p className="text-sm text-cyan-900">
+                                <span className="font-semibold">Help improve:</span> If you notice a mismatch, submit an update or report. Community feedback keeps this mosque schedule accurate.
+                            </p>
+                        </div>
+                    )}
 
-                    <div className={`grid gap-3 ${isVolunteer() ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
-                        {isVolunteer() && (
+                    <div className={`grid gap-3 ${isVolunteer() && !isMosqueInactive ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                        {isVolunteer() && !isMosqueInactive && (
                             <button
                                 type='button'
                                 onClick={updateTimings}

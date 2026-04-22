@@ -4,13 +4,14 @@ export interface MosqueDetails {
   id?: string;
   googlePlaceId?: string;
   name: string;
-  vicinity?: string;
+  vicinity?: string | null;
   latitude?: number;
   longitude?: number;
-  placeTypes?: string;
-  lastFetchAt?: string;
-  createdDate?: string;
-  modifedDate?: string;
+  placeTypes?: string | null;
+  isActive?: boolean;
+  lastFetchAt?: string | null;
+  createdDate?: string | null;
+  modifedDate?: string | null;
 }
 
 export async function getMosques(): Promise<MosqueDetails[]> {
@@ -18,6 +19,15 @@ export async function getMosques(): Promise<MosqueDetails[]> {
     headers: { 'Content-Type': 'application/json' },
   });
   if (!response.ok) throw new Error(`Failed to fetch mosques: ${response.status}`);
+  return response.json();
+}
+
+export async function getMosqueByPlaceId(placeId: string): Promise<MosqueDetails | null> {
+  const response = await fetch(`${BASE_URL}/api/MosqueDetailsByPlaceId/${encodeURIComponent(placeId)}`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to fetch mosque by place ID: ${response.status}`);
   return response.json();
 }
 

@@ -79,6 +79,9 @@ export default function UpdateTimingModal({ isOpen, mosqueName, mosqueId, prayer
     const [updatedTimings, setUpdatedTimings] = useState<Record<EditablePrayer, PrayerTimingInput>>(
         () => buildTimings(prayerTimings, initialTimings)
     );
+    const [originalTimings, setOriginalTimings] = useState<Record<EditablePrayer, PrayerTimingInput>>(
+        () => buildTimings(prayerTimings, initialTimings)
+    );
     const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
     const [prevTimings, setPrevTimings] = useState(prayerTimings);
     const [prevInitial, setPrevInitial] = useState(initialTimings);
@@ -95,7 +98,9 @@ export default function UpdateTimingModal({ isOpen, mosqueName, mosqueId, prayer
         setPrevIsOpen(isOpen);
         setPrevTimings(prayerTimings);
         setPrevInitial(initialTimings);
-        setUpdatedTimings(buildTimings(prayerTimings, initialTimings));
+        const fresh = buildTimings(prayerTimings, initialTimings);
+        setUpdatedTimings(fresh);
+        setOriginalTimings(fresh);
     }
 
     function handleTimeChange(prayer: EditablePrayer, field: TimingField, value: string) {
@@ -113,12 +118,19 @@ export default function UpdateTimingModal({ isOpen, mosqueName, mosqueId, prayer
         setSubmitError(null);
         setIsSubmitting(true);
         try {
-            const updates = EDITABLE_PRAYERS.map((prayer) => ({
-                mosqueId,
-                prayer: PRAYER_NAME_TO_ENUM[prayer],
-                aadhan: updatedTimings[prayer].adhan,
-                congregation: updatedTimings[prayer].congregation,
-            }));
+            const updates = EDITABLE_PRAYERS
+                .filter((prayer) => {
+                    const orig = originalTimings[prayer];
+                    const curr = updatedTimings[prayer];
+                    return curr.adhan !== orig.adhan || curr.congregation !== orig.congregation;
+                })
+                .map((prayer) => ({
+                    mosqueId,
+                    prayer: PRAYER_NAME_TO_ENUM[prayer],
+                    aadhan: updatedTimings[prayer].adhan,
+                    congregation: updatedTimings[prayer].congregation,
+                }));
+            if (updates.length === 0) { setSaved(true); return; }
             await createTimingUpdatesBulk(updates);
             setSaved(true);
         } catch {
