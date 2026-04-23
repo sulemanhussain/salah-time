@@ -1,18 +1,10 @@
 const BASE_URL = '';
 
-export enum Prayer {
-  Fajr = 0,
-  Dhuhr = 1,
-  Asr = 2,
-  Maghrib = 3,
-  Isha = 4,
-}
+export const Prayer = { Fajr: 0, Dhuhr: 1, Asr: 2, Maghrib: 3, Isha: 4 } as const;
+export type Prayer = (typeof Prayer)[keyof typeof Prayer];
 
-export enum TimingUpdateStatus {
-  Pending = 0,
-  Approved = 1,
-  Rejected = 2,
-}
+export const TimingUpdateStatus = { Pending: 0, Approved: 1, Rejected: 2 } as const;
+export type TimingUpdateStatus = (typeof TimingUpdateStatus)[keyof typeof TimingUpdateStatus];
 
 export interface TimingUpdate {
   id?: string;

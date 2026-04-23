@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLock, FiMail, FiShield } from "react-icons/fi";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { isAuthenticated, setAuthCookie } from "../utils/auth-cookie";
+import { loginUser } from "../data/users";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,14 +18,28 @@ export default function Login() {
     }
   }, [navigate]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (error) setError(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    setAuthCookie({ email: form.email, loggedInAt: new Date().toISOString() }, 7);
-    navigate("/app", { replace: true });
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const result = await loginUser({ emailId: form.email, passwordHash: form.password });
+      if (!result.success) {
+        setError("Incorrect email or password. Please try again.");
+        return;
+      }
+      setAuthCookie({ email: form.email, userId: result.userId, loggedInAt: new Date().toISOString() }, 7);
+      navigate("/app", { replace: true });
+    } catch {
+      setError("Unable to reach the server. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -131,13 +148,20 @@ export default function Login() {
               </a>
             </div>
 
+            {error && (
+              <p className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-700">
+                {error}
+              </p>
+            )}
+
             {/* submit */}
             <button
               type="submit"
-              className="group relative h-12 w-full overflow-hidden rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(13,148,136,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-6px_rgba(13,148,136,0.5)] active:translate-y-0"
+              disabled={isSubmitting}
+              className="group relative h-12 w-full overflow-hidden rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(13,148,136,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-6px_rgba(13,148,136,0.5)] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
-                Sign In
+                {isSubmitting ? "Signing in..." : "Sign In"}
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
             </button>

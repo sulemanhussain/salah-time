@@ -1,21 +1,13 @@
 import type { MosqueDetails } from './mosque-details';
+import type { User } from './users';
 
 const BASE_URL = '';
 
-export enum ReportReason {
-  IncorrectAdhan = 0,
-  IncorrectCongregation = 1,
-  MissingTiming = 2,
-  OutdatedSchedule = 3,
-  DetailsMismatch = 4,
-  Other = 5,
-}
+export const ReportReason = { IncorrectAdhan: 0, IncorrectCongregation: 1, MissingTiming: 2, OutdatedSchedule: 3, DetailsMismatch: 4, Other: 5 } as const;
+export type ReportReason = (typeof ReportReason)[keyof typeof ReportReason];
 
-export enum ReportStatus {
-  Pending = 0,
-  Resolved = 1,
-  Dismissed = 2,
-}
+export const ReportStatus = { Pending: 0, Resolved: 1, Dismissed: 2 } as const;
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus];
 
 export interface TimingReport {
   id?: string;
@@ -29,6 +21,8 @@ export interface TimingReport {
   createdDate?: string | null;
   modifiedDate?: string | null;
   mosqueDetails?: MosqueDetails | null;
+  reportedUser?: User | null;
+  reviewedUser?: User | null;
 }
 
 export async function getTimingReports(): Promise<TimingReport[]> {

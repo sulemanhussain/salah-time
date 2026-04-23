@@ -1,6 +1,7 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { updateUserProfile } from "../data/users";
+import type { UserProfile } from "../data/users";
 import {
     FiCamera,
     FiCheckCircle,
@@ -74,7 +75,31 @@ const GENDER_OPTIONS: { value: Exclude<Gender, "">; label: string; Icon: ({ size
     { value: "prefer_not_to_say", label: "Prefer not to say", Icon: NeutralPersonIcon },
 ];
 
-function loadProfile(email: string): Profile {
+function genderEnumToLocal(gender: number | null | undefined): Gender {
+    if (gender === 0) return "male";
+    if (gender === 1) return "female";
+    if (gender === 2) return "prefer_not_to_say";
+    return "";
+}
+
+function genderLocalToEnum(gender: Gender): 0 | 1 | 2 | undefined {
+    if (gender === "male") return 0;
+    if (gender === "female") return 1;
+    if (gender === "prefer_not_to_say") return 2;
+    return undefined;
+}
+
+function loadProfile(email: string, userProfile?: UserProfile | null): Profile {
+    if (userProfile) {
+        return {
+            fullName: userProfile.fullName ?? "",
+            email,
+            phone: userProfile.phone ?? "",
+            city: userProfile.city ?? "",
+            gender: genderEnumToLocal(userProfile.gender),
+            bio: userProfile.bio ?? "",
+        };
+    }
     try {
         const stored = localStorage.getItem(PROFILE_KEY);
         if (stored) return { gender: "", ...JSON.parse(stored) };
@@ -89,34 +114,52 @@ function saveProfile(profile: Profile) {
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    userProfile?: UserProfile | null;
+    isLoading?: boolean;
 }
 
 const FIELD_CLASS =
     "h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-teal-400 focus:bg-white focus:ring-2 focus:ring-teal-100";
 
-export default function ProfileModal({ isOpen, onClose }: Props) {
+export default function ProfileModal({ isOpen, onClose, userProfile, isLoading }: Props) {
     const authUser = getAuthCookie();
     const authEmail = authUser?.email ?? "";
     const initials = (authEmail.split("@")[0] ?? "U").slice(0, 2).toUpperCase();
 
-    const [form, setForm] = useState<Profile>(() => loadProfile(authEmail));
-    const [saved, setSaved] = useState(false);
+    const [form, setForm] = useState<Profile>(() => loadProfile(authEmail, userProfile));
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [successMsg, setSuccessMsg] = useState(false);
 
     function handleChange(field: keyof Profile, value: string) {
         setForm((prev) => ({ ...prev, [field]: value }));
     }
 
     function handleClose() {
-        setForm(loadProfile(authEmail));
-        setSaved(false);
+        setSuccessMsg(false);
         onClose();
     }
 
-    function handleSubmit(e: FormEvent) {
+    async function handleSubmit(e: { preventDefault(): void }) {
         e.preventDefault();
-        saveProfile(form);
-        setSaved(true);
-        setTimeout(handleClose, 900);
+        setIsSubmitting(true);
+        try {
+            await Promise.all([
+                updateUserProfile({
+                    userId: authUser?.userId,
+                    fullName: form.fullName || null,
+                    phone: form.phone || null,
+                    city: form.city || null,
+                    gender: genderLocalToEnum(form.gender) ?? null,
+                    bio: form.bio || null,
+                }),
+                new Promise((r) => setTimeout(r, 1000)),
+            ]);
+            saveProfile(form);
+            setSuccessMsg(true);
+            setTimeout(() => setSuccessMsg(false), 3500);
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return createPortal(
@@ -173,7 +216,13 @@ export default function ProfileModal({ isOpen, onClose }: Props) {
                             </div>
                         </div>
 
-                        <div className="p-4 sm:p-6">
+                        {isLoading && (
+                            <div className="flex flex-col items-center justify-center gap-3 py-16">
+                                <div className="h-9 w-9 animate-spin rounded-full border-4 border-teal-100 border-t-teal-500" />
+                                <p className="text-xs font-medium text-slate-400">Loading profile…</p>
+                            </div>
+                        )}
+                        <div className={`p-4 sm:p-6 ${isLoading ? "hidden" : ""}`}>
                         <div className="mx-auto max-w-3xl space-y-4">
 
                             {/* full name */}
@@ -217,9 +266,8 @@ export default function ProfileModal({ isOpen, onClose }: Props) {
                                 <input
                                     type="email"
                                     value={form.email}
-                                    onChange={(e) => handleChange("email", e.target.value)}
-                                    placeholder="you@example.com"
-                                    className={FIELD_CLASS}
+                                    readOnly
+                                    className={`${FIELD_CLASS} cursor-not-allowed bg-slate-100 text-slate-500 select-all`}
                                 />
                             </Field>
 
@@ -264,21 +312,32 @@ export default function ProfileModal({ isOpen, onClose }: Props) {
 
                     {/* footer */}
                     <div className="border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
-                        <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(13,148,136,0.5)] ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(13,148,136,0.6)] active:translate-y-0"
-                            >
-                                {saved ? <FiCheckCircle size={15} /> : <FiSave size={14} />}
-                                {saved ? "Saved!" : "Save Changes"}
-                            </button>
+                        <div className="mx-auto max-w-3xl space-y-2">
+                            <div className={`overflow-hidden transition-all duration-300 ${successMsg ? "max-h-16 opacity-100" : "max-h-0 opacity-0"}`}>
+                                <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-3.5 py-2.5">
+                                    <FiCheckCircle size={14} className="shrink-0 text-teal-600" />
+                                    <p className="text-xs font-medium text-teal-800">Profile details updated successfully.</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    className="h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(13,148,136,0.5)] ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(13,148,136,0.6)] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                >
+                                    {isSubmitting
+                                        ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                        : <FiSave size={14} />}
+                                    {isSubmitting ? "Saving…" : "Save Changes"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>

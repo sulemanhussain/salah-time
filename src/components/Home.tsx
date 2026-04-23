@@ -11,7 +11,7 @@ import {
     FiTrendingUp,
 } from "react-icons/fi";
 import { getAuthCookie } from "../utils/auth-cookie";
-import { isVolunteer } from "./Settings";
+import { isVolunteer } from "../utils/volunteer";
 import NavigationBar from "./NavigationBar";
 
 export default function Home() {

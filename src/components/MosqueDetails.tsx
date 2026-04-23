@@ -40,7 +40,7 @@ import UpdateTimingModal from "./UpdateTimingModal";
 import UpdateMethodModal from "./UpdateMethodModal";
 import ReportTimingModal from "./ReportTimingModal";
 import { FLAGS } from "../flags";
-import { isVolunteer } from "./Settings";
+import { isVolunteer } from "../utils/volunteer";
 import { addMinutesToTime, parseTimeToMinutes, calculateMinuteGap, formatTimeUntil } from "../utils/time";
 
 type PrayerRow = {

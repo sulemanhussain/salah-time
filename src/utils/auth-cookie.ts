@@ -3,6 +3,7 @@ const DEFAULT_COOKIE_DAYS = 7;
 
 export interface AuthUser {
     email: string;
+    userId?: string;
     loggedInAt: string;
 }
 
