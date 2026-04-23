@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiChevronRight, FiEdit3, FiInfo, FiLogOut, FiUser } from "react-icons/fi";
+import { FiChevronRight, FiEdit3, FiInfo, FiLogOut, FiSettings, FiUser } from "react-icons/fi";
 import NavigationBar from "./NavigationBar";
 import ProfileModal from "./ProfileModal";
 import { getAuthCookie, clearAuthCookie } from "../utils/auth-cookie";
@@ -80,19 +80,22 @@ export default function Settings() {
         <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 pb-24 sm:p-6">
             <div className="mx-auto max-w-2xl space-y-4">
 
-                {/* personalised header */}
+                {/* header */}
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 py-6 text-white shadow-[0_20px_45px_-20px_rgba(14,116,144,0.75)]">
                     <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
                     <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
-                    <div className="relative flex items-center gap-4">
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-lg font-extrabold ring-2 ring-white/30">
-                            {initials}
+                    {/* subtle gear watermark */}
+                    <FiSettings size={96} className="pointer-events-none absolute -right-4 -bottom-4 opacity-[0.07] rotate-12" />
+                    <div className="relative">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/20 ring-2 ring-white/30">
+                                <FiSettings size={20} />
+                            </div>
+                            <p className="text-2xl font-extrabold leading-tight">Settings</p>
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold uppercase tracking-widest text-cyan-200">Settings</p>
-                            <p className="truncate text-xl font-extrabold leading-tight">{displayName}</p>
-                            <p className="truncate text-xs text-cyan-200/80">{authUser?.email}</p>
-                        </div>
+                        <p className="mt-3 text-sm leading-relaxed text-cyan-100/80">
+                            Personalise your experience, manage your profile and control your community contributions.
+                        </p>
                     </div>
                 </div>
 

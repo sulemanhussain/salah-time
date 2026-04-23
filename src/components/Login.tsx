@@ -143,9 +143,12 @@ export default function Login() {
                 <input type="checkbox" className="accent-teal-500" />
                 Remember me
               </label>
-              <a href="#" className="font-semibold text-teal-600 transition hover:text-teal-500">
+              <Link
+                to={`/forgot-password${form.email ? `?email=${encodeURIComponent(form.email)}` : ""}`}
+                className="font-semibold text-teal-600 transition hover:text-teal-500"
+              >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {error && (

@@ -92,17 +92,15 @@ export default function Notifications() {
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 py-6 text-white shadow-[0_20px_45px_-20px_rgba(14,116,144,0.75)]">
                     <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
                     <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
+                    <FiBell size={96} className="pointer-events-none absolute -right-4 -bottom-4 opacity-[0.07] -rotate-12" />
 
                     <div className="relative">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30">
-                                    <FiBell size={18} />
+                                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 ring-2 ring-white/30">
+                                    <FiBell size={20} />
                                 </span>
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-widest text-cyan-200">Activity</p>
-                                    <h1 className="text-xl font-extrabold leading-tight">Notifications</h1>
-                                </div>
+                                <h1 className="text-2xl font-extrabold leading-tight">Notifications</h1>
                             </div>
                             {unreadCount > 0 && (
                                 <span className="flex h-7 min-w-[28px] items-center justify-center rounded-full bg-white px-2 text-xs font-extrabold text-teal-700 shadow-md">
@@ -110,6 +108,9 @@ export default function Notifications() {
                                 </span>
                             )}
                         </div>
+                        <p className="mt-3 text-sm leading-relaxed text-cyan-100/80">
+                            Stay up to date with mosque updates, community reports and verified timing changes near you.
+                        </p>
 
                         {/* filter tabs */}
                         <div className="mt-4 flex items-center gap-1 rounded-xl bg-white/15 p-1 ring-1 ring-white/20">

@@ -64,6 +64,34 @@ export async function registerUser(user: User): Promise<void> {
   if (!response.ok) throw new Error(`Failed to register user: ${response.status}`);
 }
 
+export async function sendOtp(email: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/SendOtp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!response.ok) throw new Error(`Failed to send OTP: ${response.status}`);
+}
+
+export async function verifyOtp(email: string, otp: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/VerifyOtp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  });
+  if (response.status === 400 || response.status === 401) throw new Error('invalid');
+  if (!response.ok) throw new Error(`Failed to verify OTP: ${response.status}`);
+}
+
+export async function resetPassword(email: string, otp: string, newPassword: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/ResetPassword`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp, newPassword }),
+  });
+  if (!response.ok) throw new Error(`Failed to reset password: ${response.status}`);
+}
+
 export interface LoginResult {
   success: boolean;
   userId?: string;

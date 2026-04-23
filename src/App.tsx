@@ -6,6 +6,7 @@ import NavigationBar from './components/NavigationBar';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
+import ForgotPassword from './components/ForgotPassword';
 import Home from './components/Home';
 import LocationServiceOff from './components/LocationServiceOff';
 import Notifications from './components/Notifications';
@@ -86,6 +87,7 @@ function App() {
         <Route path="/" element={<RootRoute />} />
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/signup" element={isAuthenticated() ? <Navigate to="/app" replace /> : <SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/home"
           element={
