@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiChevronRight, FiEdit3, FiInfo, FiLogOut, FiUser } from "react-icons/fi";
 import NavigationBar from "./NavigationBar";
 import ProfileModal from "./ProfileModal";
@@ -6,7 +6,7 @@ import { getAuthCookie, clearAuthCookie } from "../utils/auth-cookie";
 import { useNavigate } from "react-router-dom";
 import { getUserById, setVolunteerStatus } from "../data/users";
 import type { UserProfile } from "../data/users";
-import { isVolunteer, setVolunteerLocal } from "../utils/volunteer";
+import { isVolunteer, setVolunteerLocal, setDisplayName, getDisplayName } from "../utils/volunteer";
 
 export default function Settings() {
     const [isVolunteerEnabled, setIsVolunteerEnabled] = useState(() => isVolunteer());
@@ -17,12 +17,32 @@ export default function Settings() {
 
     const authUser = getAuthCookie();
 
+    useEffect(() => {
+        const userId = authUser?.userId;
+        if (!userId) return;
+        async function load() {
+            try {
+                const profile = await getUserById(userId!);
+                setUserProfile(profile);
+                setDisplayName(profile.fullName);
+                const vol = profile.isVolunteer ?? false;
+                setIsVolunteerEnabled(vol);
+                setVolunteerLocal(vol);
+            } catch { /* ignore */ }
+        }
+        load();
+    }, [authUser?.userId]);
+
     async function openProfile() {
         setProfileOpen(true);
         const userId = authUser?.userId;
         if (!userId) return;
         setProfileLoading(true);
-        try { setUserProfile(await getUserById(userId)); } catch { /* ignore */ }
+        try {
+            const profile = await getUserById(userId);
+            setUserProfile(profile);
+            setDisplayName(profile.fullName);
+        } catch { /* ignore */ }
         finally { setProfileLoading(false); }
     }
 
@@ -33,7 +53,7 @@ export default function Settings() {
         getUserById(userId).then(setUserProfile).catch(() => {});
     }
 
-    const displayName = userProfile?.fullName || (authUser?.email?.split("@")[0] ?? "User");
+    const displayName = getDisplayName(authUser?.email);
     const initials = displayName.slice(0, 2).toUpperCase();
 
     async function handleVolunteerToggle() {

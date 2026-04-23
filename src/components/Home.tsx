@@ -11,12 +11,12 @@ import {
     FiTrendingUp,
 } from "react-icons/fi";
 import { getAuthCookie } from "../utils/auth-cookie";
-import { isVolunteer } from "../utils/volunteer";
+import { isVolunteer, getDisplayName } from "../utils/volunteer";
 import NavigationBar from "./NavigationBar";
 
 export default function Home() {
     const authUser = getAuthCookie();
-    const displayName = authUser?.email?.split("@")[0] || "User";
+    const displayName = getDisplayName(authUser?.email);
     const initials = displayName.slice(0, 2).toUpperCase();
     const joinedDate = authUser?.loggedInAt
         ? new Date(authUser.loggedInAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })

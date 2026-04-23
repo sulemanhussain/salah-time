@@ -75,7 +75,7 @@ export async function loginUser(credentials: Pick<User, 'emailId' | 'passwordHas
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
   });
-  if (response.status === 401) return { success: false };
+  if (response.status === 401 || response.status === 204) return { success: false };
   if (!response.ok) throw new Error(`Login request failed: ${response.status}`);
   const data = await response.json();
   if (!data || data === false) return { success: false };
