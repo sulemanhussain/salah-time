@@ -6,7 +6,7 @@ export type Gender = (typeof Gender)[keyof typeof Gender];
 export interface User {
   id?: string;
   emailId: string;
-  passwordHash: string;
+  password: string;
   isActive?: boolean;
   lastLoginAt?: string | null;
   createdDate?: string | null;
@@ -15,7 +15,9 @@ export interface User {
 
 export interface UserProfile {
   id?: string;
+  userId?: string;
   fullName?: string | null;
+  emailId?: string | null;
   phone?: string | null;
   city?: string | null;
   gender?: Gender | null;
@@ -25,7 +27,6 @@ export interface UserProfile {
   volunteerSince?: string | null;
   createdDate?: string | null;
   modifiedDate?: string | null;
-  userId?: string;
   user?: User | null;
 }
 
@@ -87,7 +88,7 @@ export async function resetPassword(emailId: string, newPassword: string): Promi
   const response = await fetch(`${BASE_URL}/api/ResetPassword`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ emailId, passwordHash: newPassword }),
+    body: JSON.stringify({ emailId, password: newPassword }),
   });
   if (!response.ok) throw new Error(`Failed to reset password: ${response.status}`);
 }
@@ -136,7 +137,7 @@ export interface LoginResult {
   userId?: string;
 }
 
-export async function loginUser(credentials: Pick<User, 'emailId' | 'passwordHash'>): Promise<LoginResult> {
+export async function loginUser(credentials: Pick<User, 'emailId' | 'password'>): Promise<LoginResult> {
   const response = await fetch(`${BASE_URL}/api/UserLogin`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

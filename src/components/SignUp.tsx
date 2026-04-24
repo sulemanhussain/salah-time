@@ -30,8 +30,8 @@ export default function SignUp() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await registerUser({ emailId: form.email, passwordHash: form.password });
-      const result = await loginUser({ emailId: form.email, passwordHash: form.password });
+      await registerUser({ emailId: form.email, password: form.password });
+      const result = await loginUser({ emailId: form.email, password: form.password });
       setAuthCookie({ email: form.email, userId: result.userId, loggedInAt: new Date().toISOString() }, 7);
       navigate("/app", { replace: true });
     } catch {

@@ -28,7 +28,7 @@ export default function Login() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const result = await loginUser({ emailId: form.email, passwordHash: form.password });
+      const result = await loginUser({ emailId: form.email, password: form.password });
       if (!result.success) {
         setError("Incorrect email or password. Please try again.");
         return;
