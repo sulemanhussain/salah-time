@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FiChevronRight, FiEdit3, FiInfo, FiLogOut, FiSettings, FiUser } from "react-icons/fi";
 import NavigationBar from "./NavigationBar";
-import ProfileModal from "./ProfileModal";
 import { getAuthCookie, clearAuthCookie } from "../utils/auth-cookie";
 import { useNavigate } from "react-router-dom";
 import { getUserById, setVolunteerStatus } from "../data/users";
@@ -10,9 +9,7 @@ import { isVolunteer, setVolunteerLocal, setDisplayName, getDisplayName } from "
 
 export default function Settings() {
     const [isVolunteerEnabled, setIsVolunteerEnabled] = useState(() => isVolunteer());
-    const [profileOpen, setProfileOpen] = useState(false);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-    const [profileLoading, setProfileLoading] = useState(false);
     const navigate = useNavigate();
 
     const authUser = getAuthCookie();
@@ -33,27 +30,7 @@ export default function Settings() {
         load();
     }, [authUser?.userId]);
 
-    async function openProfile() {
-        setProfileOpen(true);
-        const userId = authUser?.userId;
-        if (!userId) return;
-        setProfileLoading(true);
-        try {
-            const profile = await getUserById(userId);
-            setUserProfile(profile);
-            setDisplayName(profile.fullName);
-        } catch { /* ignore */ }
-        finally { setProfileLoading(false); }
-    }
-
-    function handleProfileClose() {
-        setProfileOpen(false);
-        const userId = authUser?.userId;
-        if (!userId) return;
-        getUserById(userId).then(setUserProfile).catch(() => {});
-    }
-
-    const displayName = getDisplayName(authUser?.email);
+    const displayName = userProfile?.fullName || getDisplayName(authUser?.email);
     const initials = displayName.slice(0, 2).toUpperCase();
 
     async function handleVolunteerToggle() {
@@ -84,7 +61,6 @@ export default function Settings() {
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 px-5 py-6 text-white shadow-[0_20px_45px_-20px_rgba(14,116,144,0.75)]">
                     <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
                     <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
-                    {/* subtle gear watermark */}
                     <FiSettings size={96} className="pointer-events-none absolute -right-4 -bottom-4 opacity-[0.07] rotate-12" />
                     <div className="relative">
                         <div className="flex items-center gap-3">
@@ -109,7 +85,7 @@ export default function Settings() {
                     </div>
                     <button
                         type="button"
-                        onClick={openProfile}
+                        onClick={() => navigate("/profile")}
                         className="flex w-full items-center gap-4 p-4 transition hover:bg-slate-50 active:bg-slate-100"
                     >
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-sm font-extrabold text-white shadow-sm">
@@ -207,7 +183,6 @@ export default function Settings() {
             </div>
 
             <NavigationBar />
-            <ProfileModal key={String(profileOpen)} isOpen={profileOpen} onClose={handleProfileClose} userProfile={userProfile} isLoading={profileLoading} />
         </div>
     );
 }

@@ -5,9 +5,11 @@ import {
     FiCompass,
     FiEdit3,
     FiExternalLink,
+    FiHeart,
     FiMapPin,
     FiUsers,
 } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
 import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
@@ -41,6 +43,8 @@ import UpdateMethodModal from "./UpdateMethodModal";
 import ReportTimingModal from "./ReportTimingModal";
 import { FLAGS } from "../flags";
 import { isVolunteer } from "../utils/volunteer";
+import { addOrRemoveFavourite, getUserFavourites } from "../data/users";
+import { getAuthCookie } from "../utils/auth-cookie";
 import { addMinutesToTime, parseTimeToMinutes, calculateMinuteGap, formatTimeUntil } from "../utils/time";
 
 type PrayerRow = {
@@ -62,6 +66,40 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
     const [timingsError, setTimingsError] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<"method" | "update" | "report" | null>(null);
     const [fetchAttempt, setFetchAttempt] = useState(0);
+    const [isFavourited, setIsFavourited] = useState(false);
+    const [heartAnimating, setHeartAnimating] = useState(false);
+
+    const authUser = getAuthCookie();
+
+    useEffect(() => {
+        const userId = authUser?.userId;
+        if (!userId || !place?.place_id) return;
+        async function loadFavourite() {
+            try {
+                const favs = await getUserFavourites(userId!);
+                const match = favs.find(f => f.mosqueDetails?.googlePlaceId === place.place_id);
+                setIsFavourited(!!match);
+            } catch { /* silently ignore */ }
+        }
+        loadFavourite();
+    }, [place?.place_id, authUser?.userId]);
+
+    async function toggleFavourite() {
+        setHeartAnimating(true);
+        setTimeout(() => setHeartAnimating(false), 500);
+        const userId = authUser?.userId;
+        if (!userId || !mosqueDbId) {
+            setIsFavourited(v => !v);
+            return;
+        }
+        const next = !isFavourited;
+        setIsFavourited(next);
+        try {
+            await addOrRemoveFavourite(userId, mosqueDbId, next);
+        } catch {
+            setIsFavourited(next ? false : true);
+        }
+    }
     const [nowMinutes, setNowMinutes] = useState(() => new Date().getHours() * 60 + new Date().getMinutes());
 
     useEffect(() => {
@@ -185,18 +223,16 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-700 via-cyan-700 to-sky-700 p-5 text-white shadow-[0_20px_45px_-20px_rgba(14,116,144,0.75)] sm:p-6">
                         <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/20 blur-2xl"></div>
                         <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-white/20 blur-2xl"></div>
+                        <FiMapPin size={96} className="pointer-events-none absolute -right-4 -bottom-4 opacity-[0.07]" />
 
                         <div className="relative space-y-4">
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em]">
-                                        Mosque Details
-                                    </p>
-                                    <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">{place.name}</h1>
-                                    <p className="mt-2 inline-flex items-start gap-2 text-sm text-cyan-100">
-                                        <FiMapPin className="mt-0.5 shrink-0" size={14} />
-                                        <span>{place.vicinity || "Address unavailable"}</span>
-                                    </p>
+                            <div className="flex items-start gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/20 ring-2 ring-white/30">
+                                    <FiMapPin size={20} />
+                                </div>
+                                <div className="min-w-0">
+                                    <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">{place.name}</h1>
+                                    <p className="mt-1 text-sm text-cyan-100/80">{place.vicinity || "Address unavailable"}</p>
                                 </div>
                             </div>
 
@@ -239,6 +275,65 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                             <span className="font-semibold">Disclaimer:</span> Timings are algorithmically calculated and may differ slightly from local noticeboards. Please verify with the mosque for exact schedules.
                         </p>
                     </div>
+
+                    {/* favourite button */}
+                    <div className="relative">
+                        {heartAnimating && isFavourited && [
+                            { angle: -80,  color: "bg-rose-400",    size: "h-2 w-2",     delay: 0   },
+                            { angle: -45,  color: "bg-yellow-400",  size: "h-1.5 w-1.5", delay: 40  },
+                            { angle: -15,  color: "bg-pink-400",    size: "h-2 w-2",     delay: 20  },
+                            { angle:  20,  color: "bg-amber-400",   size: "h-1.5 w-1.5", delay: 60  },
+                            { angle:  55,  color: "bg-rose-300",    size: "h-2 w-2",     delay: 10  },
+                            { angle:  90,  color: "bg-fuchsia-400", size: "h-1.5 w-1.5", delay: 50  },
+                            { angle: 130,  color: "bg-pink-300",    size: "h-2 w-2",     delay: 30  },
+                            { angle: 175,  color: "bg-rose-500",    size: "h-1.5 w-1.5", delay: 70  },
+                            { angle: -130, color: "bg-yellow-300",  size: "h-2 w-2",     delay: 15  },
+                            { angle: -160, color: "bg-pink-500",    size: "h-1.5 w-1.5", delay: 55  },
+                        ].map(({ angle, color, size, delay }, i) => (
+                            <div
+                                key={i}
+                                className="pointer-events-none absolute z-20"
+                                style={{ left: 52, top: "50%", transform: `rotate(${angle}deg)`, transformOrigin: "center" }}
+                            >
+                                <span
+                                    className={`sparkle block rounded-full ${color} ${size}`}
+                                    style={{ animationDelay: `${delay}ms` }}
+                                />
+                            </div>
+                        ))}
+
+                        <button
+                            type="button"
+                            onClick={toggleFavourite}
+                            className={`relative w-full flex items-center justify-between gap-3 rounded-2xl px-5 py-4 shadow-md transition-all active:scale-[0.98] ${
+                                isFavourited
+                                    ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-rose-200"
+                                    : "bg-white border border-rose-200 text-rose-500 hover:border-rose-300 hover:bg-rose-50"
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span key={String(isFavourited)} className={`flex h-10 w-10 items-center justify-center rounded-xl ${isFavourited ? "bg-white/20" : "bg-rose-50"} ${heartAnimating ? "animate-heart-pop" : ""}`}>
+                                    {isFavourited
+                                        ? <FaHeart size={20} className="text-white" />
+                                        : <FiHeart size={20} className="text-rose-500" />
+                                    }
+                                </span>
+                                <div className="text-left">
+                                    <p className={`text-sm font-bold ${isFavourited ? "text-white" : "text-rose-600"}`}>
+                                        {isFavourited ? "Saved to Favourites" : "Save to Favourites"}
+                                    </p>
+                                    <p className={`text-xs ${isFavourited ? "text-white/75" : "text-rose-400"}`}>
+                                        {isFavourited ? "Tap to remove from your saved mosques" : "Quickly access this mosque later"}
+                                    </p>
+                                </div>
+                            </div>
+                            {isFavourited
+                                ? <FaHeart size={13} className="shrink-0 text-white/40" />
+                                : <FiHeart size={13} className="shrink-0 text-rose-300" />
+                            }
+                        </button>
+                    </div>
+
 
                     {isMosqueInactive && (
                         <div className="rounded-2xl border border-rose-300 bg-gradient-to-r from-rose-50 to-pink-50 p-4 shadow-sm">

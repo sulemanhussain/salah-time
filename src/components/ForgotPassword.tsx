@@ -77,7 +77,7 @@ export default function ForgotPassword() {
     setError(null);
     setIsSubmitting(true);
     try {
-      //await resetPassword(email, otp, passwords.password);
+      //await resetPassword(email, passwords.password);
       setStep("success");
     } catch {
       setError("Unable to reset password. Please try again.");

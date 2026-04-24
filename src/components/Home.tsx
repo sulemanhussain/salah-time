@@ -17,7 +17,6 @@ import NavigationBar from "./NavigationBar";
 export default function Home() {
     const authUser = getAuthCookie();
     const displayName = getDisplayName(authUser?.email);
-    const initials = displayName.slice(0, 2).toUpperCase();
     const joinedDate = authUser?.loggedInAt
         ? new Date(authUser.loggedInAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
         : "Recently";
@@ -49,32 +48,41 @@ export default function Home() {
                     <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
                     <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
 
-                    <div className="relative flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                            <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">
-                                Assalamu Alaikum, <span className="text-cyan-200">{displayName}</span>
-                            </h1>
-                            <p className="mt-1.5 text-sm text-cyan-100/90">
-                                {isVolunteer()
-                                    ? "JazakAllahu Khayran — your contributions help Muslims find accurate prayer times."
-                                    : "Join our contributors and help keep local mosque prayer times accurate for everyone."}
-                            </p>
-                            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
-                                <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">
-                                    <FiClock size={10} />
-                                    Since {joinedDate}
-                                </span>
-                                {isVolunteer() && (
-                                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-400/25 px-3 py-1 font-semibold text-emerald-100 ring-1 ring-emerald-300/30">
-                                        <FiAward size={10} />
-                                        Contributor
+                    <div className="relative">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                                <h1 className="text-2xl font-extrabold leading-tight">
+                                    Assalamu Alaikum,<br />
+                                    <span className="text-cyan-200">{displayName}</span>
+                                </h1>
+                                <p className="mt-3 text-sm leading-relaxed text-cyan-100/80">
+                                    {isVolunteer()
+                                        ? "JazakAllahu Khayran — your contributions help Muslims find accurate prayer times."
+                                        : "Join our contributors and help keep local mosque prayer times accurate for everyone."}
+                                </p>
+                                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                                    <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">
+                                        <FiClock size={10} />
+                                        Since {joinedDate}
                                     </span>
-                                )}
+                                    {isVolunteer() && (
+                                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-400/25 px-3 py-1 font-semibold text-emerald-100 ring-1 ring-emerald-300/30">
+                                            <FiAward size={10} />
+                                            Contributor
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-lg font-extrabold ring-2 ring-white/30">
-                            {initials}
+                            {/* avatar */}
+                            <div className="shrink-0 flex flex-col items-center gap-1.5">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 ring-2 ring-white/25 text-xl font-extrabold text-white shadow-inner">
+                                    {displayName.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-[10px] font-semibold text-cyan-100/70 tracking-wide">
+                                    {isVolunteer() ? "Contributor" : "Member"}
+                                </span>
+                            </div>
                         </div>
                     </div>
 

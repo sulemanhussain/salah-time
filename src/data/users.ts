@@ -83,13 +83,52 @@ export async function verifyOtp(email: string, otp: string): Promise<void> {
   if (!response.ok) throw new Error(`Failed to verify OTP: ${response.status}`);
 }
 
-export async function resetPassword(email: string, otp: string, newPassword: string): Promise<void> {
+export async function resetPassword(emailId: string, newPassword: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/api/ResetPassword`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, otp, newPassword }),
+    body: JSON.stringify({ emailId, passwordHash: newPassword }),
   });
   if (!response.ok) throw new Error(`Failed to reset password: ${response.status}`);
+}
+
+export interface FavouriteMosqueDetails {
+  id?: string;
+  googlePlaceId?: string;
+  name: string;
+  vicinity?: string | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  placeTypes?: string | null;
+  isActive?: boolean;
+  lastFetchAt?: string | null;
+  createdDate?: string | null;
+  modifedDate?: string | null;
+}
+
+export interface UserFavourite {
+  id?: string;
+  userId: string;
+  mosqueId: string;
+  mosqueDetails?: FavouriteMosqueDetails | null;
+}
+
+export async function getUserFavourites(userId: string): Promise<UserFavourite[]> {
+  const params = new URLSearchParams({ userId });
+  const response = await fetch(`${BASE_URL}/api/UserFavourites?${params}`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Failed to fetch favourites: ${response.status}`);
+  return response.json();
+}
+
+export async function addOrRemoveFavourite(userId: string, mosqueId: string, isFavourite: boolean): Promise<void> {
+  const params = new URLSearchParams({ userId, mosqueId, isFavourite: String(isFavourite) });
+  const response = await fetch(`${BASE_URL}/api/UserFavourites?${params}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Failed to update favourite: ${response.status}`);
 }
 
 export interface LoginResult {
