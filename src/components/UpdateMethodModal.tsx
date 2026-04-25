@@ -1,5 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { SKELETON_THEME } from "../utils/skeleton-theme";
 import { FiUploadCloud, FiEdit3, FiX, FiInfo } from "react-icons/fi";
 import Modal from "./Modal";
 
@@ -12,9 +15,17 @@ interface Props {
 
 export default function UpdateMethodModal({ isOpen, mosqueName, onManual, onClose }: Props) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isOpening, setIsOpening] = useState(false);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const tOpen  = setTimeout(() => setIsOpening(true), 0);
+        const tClose = setTimeout(() => setIsOpening(false), 350);
+        return () => { clearTimeout(tOpen); clearTimeout(tClose); };
+    }, [isOpen]);
 
     function handleFile(file: File) {
         if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -81,6 +92,27 @@ export default function UpdateMethodModal({ isOpen, mosqueName, onManual, onClos
 
                 {/* ── Body ── */}
                 <div className="space-y-4 p-4 sm:p-6">
+                {isOpening ? (
+                    <SkeletonTheme {...SKELETON_THEME}>
+                        <Skeleton height={56} borderRadius={12} />
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <Skeleton width={90} height={16} borderRadius={6} />
+                                    <Skeleton width={100} height={22} borderRadius={999} />
+                                </div>
+                                <Skeleton height={120} borderRadius={12} />
+                            </div>
+                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <Skeleton width={100} height={16} borderRadius={6} />
+                                    <Skeleton width={80} height={22} borderRadius={999} />
+                                </div>
+                                <Skeleton height={120} borderRadius={12} />
+                            </div>
+                        </div>
+                    </SkeletonTheme>
+                ) : (<>
 
                     {/* Info banner */}
                     <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 shadow-sm">
@@ -214,6 +246,7 @@ export default function UpdateMethodModal({ isOpen, mosqueName, onManual, onClos
                             )}
                         </div>
                     </div>
+                </>)}
                 </div>
             </div>
         </Modal>,

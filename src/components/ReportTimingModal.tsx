@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRef } from "react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { SKELETON_THEME } from "../utils/skeleton-theme";
 import {
     FiCheckCircle,
     FiFile,
@@ -36,6 +39,15 @@ type ReasonId = typeof REPORT_REASONS[number]["id"];
 
 export default function ReportTimingModal({ isOpen, mosqueName, mosqueId, onClose }: ReportTimingModalProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isOpening, setIsOpening] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const tOpen  = setTimeout(() => setIsOpening(true), 0);
+        const tClose = setTimeout(() => setIsOpening(false), 350);
+        return () => { clearTimeout(tOpen); clearTimeout(tClose); };
+    }, [isOpen]);
+
     const [selectedReason, setSelectedReason] = useState<ReasonId>(REPORT_REASONS[0].id);
     const [details, setDetails] = useState("");
     const [photo, setPhoto] = useState<File | null>(null);
@@ -159,8 +171,46 @@ export default function ReportTimingModal({ isOpen, mosqueName, mosqueId, onClos
                     </div>
                 )}
 
+                {/* ── opening skeleton ── */}
+                {isOpening && !saved && (
+                    <SkeletonTheme {...SKELETON_THEME}>
+                        <div className="space-y-4 p-4 sm:p-6">
+                            {/* step 1 – reason grid */}
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3">
+                                    <Skeleton width={24} height={24} borderRadius={999} />
+                                    <Skeleton width={120} height={14} borderRadius={4} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 p-4">
+                                    {[0,1,2,3,4,5].map(i => <Skeleton key={i} height={44} borderRadius={12} />)}
+                                </div>
+                            </div>
+                            {/* step 2 – details */}
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3">
+                                    <Skeleton width={24} height={24} borderRadius={999} />
+                                    <Skeleton width={140} height={14} borderRadius={4} />
+                                </div>
+                                <div className="p-4">
+                                    <Skeleton height={128} borderRadius={12} />
+                                </div>
+                            </div>
+                            {/* step 3 – photo */}
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3">
+                                    <Skeleton width={24} height={24} borderRadius={999} />
+                                    <Skeleton width={160} height={14} borderRadius={4} />
+                                </div>
+                                <div className="p-4">
+                                    <Skeleton height={96} borderRadius={12} />
+                                </div>
+                            </div>
+                        </div>
+                    </SkeletonTheme>
+                )}
+
                 {/* ── form ── */}
-                <form onSubmit={handleSubmit} className={`space-y-4 p-4 sm:p-6 ${saved ? 'hidden' : ''}`}>
+                <form onSubmit={handleSubmit} className={`space-y-4 p-4 sm:p-6 ${saved || isOpening ? 'hidden' : ''}`}>
                     <div className="mx-auto max-w-3xl space-y-4">
 
                         {/* guidance */}

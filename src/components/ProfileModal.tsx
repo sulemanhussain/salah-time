@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import { SKELETON_THEME, SKELETON_THEME_DARK } from "../utils/skeleton-theme";
+import "react-loading-skeleton/dist/skeleton.css";
 import { updateUserProfile, getUserById } from "../data/users";
 import type { UserProfile } from "../data/users";
 import {
@@ -145,32 +148,56 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="relative mt-5 flex flex-col items-center gap-2">
-                            <div className="relative">
-                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-extrabold text-white ring-2 ring-white/30 shadow-[0_0_0_5px_rgba(255,255,255,0.1)]">
-                                    {initials}
-                                </div>
-                                <button
-                                    type="button"
-                                    className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-teal-600 shadow-md transition hover:bg-teal-50"
-                                    aria-label="Change photo"
-                                >
-                                    <FiCamera size={13} />
-                                </button>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-base font-bold text-white">
-                                    {form.fullName || userProfile?.fullName || authEmail.split("@")[0]}
-                                </p>
-                                <p className="text-xs text-cyan-200">{authEmail}</p>
-                            </div>
+                            {isLoading ? (
+                                <SkeletonTheme baseColor={SKELETON_THEME_DARK.baseColor} highlightColor={SKELETON_THEME_DARK.highlightColor}>
+                                    <Skeleton width={80} height={80} borderRadius={999} />
+                                    <div className="flex flex-col items-center gap-1.5 mt-1">
+                                        <Skeleton width={120} height={16} borderRadius={6} />
+                                        <Skeleton width={160} height={12} borderRadius={6} />
+                                    </div>
+                                </SkeletonTheme>
+                            ) : (
+                                <>
+                                    <div className="relative">
+                                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-extrabold text-white ring-2 ring-white/30 shadow-[0_0_0_5px_rgba(255,255,255,0.1)]">
+                                            {initials}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-teal-600 shadow-md transition hover:bg-teal-50"
+                                            aria-label="Change photo"
+                                        >
+                                            <FiCamera size={13} />
+                                        </button>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-base font-bold text-white">
+                                            {form.fullName || userProfile?.fullName || authEmail.split("@")[0]}
+                                        </p>
+                                        <p className="text-xs text-cyan-200">{authEmail}</p>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     {isLoading && (
-                        <div className="flex flex-col items-center justify-center gap-3 py-16">
-                            <div className="h-9 w-9 animate-spin rounded-full border-4 border-teal-100 border-t-teal-500" />
-                            <p className="text-xs font-medium text-slate-400">Loading profile…</p>
-                        </div>
+                        <SkeletonTheme {...SKELETON_THEME}>
+                            <div className="p-4 sm:p-6 space-y-4">
+                                {/* gender toggle */}
+                                {[0, 1, 2, 3, 4].map(i => (
+                                    <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                        <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-teal-50/50 px-4 py-2.5">
+                                            <Skeleton width={20} height={20} borderRadius={999} />
+                                            <Skeleton width={80} height={12} borderRadius={4} />
+                                        </div>
+                                        <div className="p-3">
+                                            <Skeleton height={44} borderRadius={12} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </SkeletonTheme>
                     )}
 
                     <div className={`p-4 sm:p-6 ${isLoading ? "hidden" : ""}`}>

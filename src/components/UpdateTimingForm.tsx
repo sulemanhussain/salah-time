@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { SKELETON_THEME } from "../utils/skeleton-theme";
 import { FiArrowLeft, FiCheckCircle, FiClock, FiInfo, FiUsers, FiX } from "react-icons/fi";
 import type { PrayerTime } from "../data/adaan-timings";
 import { createTimingUpdatesBulk, getTimingUpdatesByMosqueId, Prayer } from "../data/timing-updates";
@@ -173,10 +176,22 @@ export default function UpdateTimingForm({ mosqueName, mosqueId, prayerTimings, 
 
 
     const formBody = isFetching ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20">
-            <div className="h-9 w-9 animate-spin rounded-full border-4 border-teal-100 border-t-teal-500" />
-            <p className="text-xs font-medium text-slate-400">Loading existing timings…</p>
-        </div>
+        <SkeletonTheme {...SKELETON_THEME}>
+            <div className="space-y-3 p-4 sm:p-6">
+                {EDITABLE_PRAYERS.map(prayer => (
+                    <div key={prayer} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                        <div className="mb-3 flex items-center justify-between">
+                            <Skeleton width={64} height={16} borderRadius={6} />
+                            <Skeleton width={72} height={22} borderRadius={999} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2.5">
+                            <Skeleton height={52} borderRadius={12} />
+                            <Skeleton height={52} borderRadius={12} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </SkeletonTheme>
     ) : (
         <div className="space-y-4 p-4 sm:p-6">
             <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 shadow-sm">

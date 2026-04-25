@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { FiHeart, FiCompass, FiExternalLink, FiSun, FiChevronRight, FiEdit3 } from "react-icons/fi";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { FiHeart, FiCompass, FiExternalLink, FiSun, FiChevronRight, FiRefreshCw } from "react-icons/fi";
 import { FaHeart, FaMosque } from "react-icons/fa";
 import NavigationBar from "./NavigationBar";
 import { getUserFavourites, addOrRemoveFavourite } from "../data/users";
@@ -64,12 +66,20 @@ export default function Favourites() {
                 {loading && (
                     <div className="space-y-3">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="animate-pulse rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-12 w-12 rounded-xl bg-slate-200" />
-                                    <div className="flex-1 space-y-2">
-                                        <div className="h-4 w-40 rounded bg-slate-200" />
-                                        <div className="h-3 w-56 rounded bg-slate-100" />
+                            <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex">
+                                    <div className="w-1.5 shrink-0 bg-slate-100" />
+                                    <div className="flex flex-1 flex-col gap-3 p-4">
+                                        <div className="flex items-center gap-3">
+                                            <Skeleton width={44} height={44} borderRadius={12} />
+                                            <div className="flex-1">
+                                                <Skeleton width="55%" height={14} borderRadius={4} />
+                                                <Skeleton width="75%" height={11} borderRadius={4} style={{ marginTop: 6 }} />
+                                            </div>
+                                            <Skeleton width={32} height={32} borderRadius={10} />
+                                        </div>
+                                        <Skeleton height={38} borderRadius={12} />
+                                        <Skeleton height={32} borderRadius={8} />
                                     </div>
                                 </div>
                             </div>
@@ -169,7 +179,7 @@ export default function Favourites() {
                                                         onClick={() => navigate('/update-timings', { state: { mosqueName: name, mosqueId: fav.mosqueId } })}
                                                         className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-violet-600 transition hover:bg-violet-50"
                                                     >
-                                                        <FiEdit3 size={13} />
+                                                        <FiRefreshCw size={13} />
                                                         Update Timings
                                                     </button>
                                                 )}

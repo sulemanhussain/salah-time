@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { FiArrowLeft, FiAlertCircle, FiMapPin, FiUsers } from "react-icons/fi";
 import { FaMosque, FaSun, FaMoon } from "react-icons/fa";
+import { SKELETON_THEME, SKELETON_THEME_DARK } from "../utils/skeleton-theme";
 import { getPrayerTimings, formatPrayerTime } from "../data/adaan-timings";
 import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import { getTimingUpdatesByMosqueId, Prayer } from "../data/timing-updates";
@@ -171,6 +174,7 @@ export default function MosquePrayerTimesModal() {
     }
 
     return (
+        <SkeletonTheme {...SKELETON_THEME}>
         <div className="min-h-screen bg-slate-50 flex flex-col animate-[fadeSlideUp_0.25s_ease-out]">
 
             {/* ── HEADER ─────────────────────────────────────────── */}
@@ -195,18 +199,27 @@ export default function MosquePrayerTimesModal() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                        {hijri && (
-                            <span className="rounded-full bg-white/20 px-3 py-1 font-semibold text-white ring-1 ring-white/25">
-                                {hijri.day} {hijri.month.en} {hijri.year} AH
-                            </span>
-                        )}
-                        {dateLabel && (
-                            <span className="rounded-full bg-white/15 px-3 py-1 text-white/80 ring-1 ring-white/20">{dateLabel}</span>
-                        )}
-                        {hasDbData && (
-                            <span className="rounded-full bg-emerald-400/25 px-3 py-1 font-semibold text-emerald-100 ring-1 ring-emerald-300/30">
-                                ✓ Mosque timings
-                            </span>
+                        {loading ? (
+                            <SkeletonTheme baseColor={SKELETON_THEME_DARK.baseColor} highlightColor={SKELETON_THEME_DARK.highlightColor}>
+                                <Skeleton width={120} height={24} borderRadius={999} />
+                                <Skeleton width={90} height={24} borderRadius={999} />
+                            </SkeletonTheme>
+                        ) : (
+                            <>
+                                {hijri && (
+                                    <span className="rounded-full bg-white/20 px-3 py-1 font-semibold text-white ring-1 ring-white/25">
+                                        {hijri.day} {hijri.month.en} {hijri.year} AH
+                                    </span>
+                                )}
+                                {dateLabel && (
+                                    <span className="rounded-full bg-white/15 px-3 py-1 text-white/80 ring-1 ring-white/20">{dateLabel}</span>
+                                )}
+                                {hasDbData && (
+                                    <span className="rounded-full bg-emerald-400/25 px-3 py-1 font-semibold text-emerald-100 ring-1 ring-emerald-300/30">
+                                        ✓ Mosque timings
+                                    </span>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
@@ -217,10 +230,28 @@ export default function MosquePrayerTimesModal() {
                 <div className="mx-auto max-w-2xl space-y-4">
 
                     {loading && (
-                        <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-slate-200 bg-white py-16 shadow-sm">
-                            <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-100 border-t-teal-500" />
-                            <p className="text-sm font-medium text-slate-400">Fetching prayer times…</p>
-                        </div>
+                        <>
+                            {/* hero card skeleton */}
+                            <Skeleton height={96} borderRadius={16} />
+
+                            {/* prayer row skeletons */}
+                            {[0, 1, 2, 3, 4].map(i => (
+                                <div key={i} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm">
+                                    <Skeleton width={36} height={36} borderRadius={10} />
+                                    <div className="flex-1">
+                                        <Skeleton width="40%" height={14} borderRadius={4} />
+                                        <Skeleton width="55%" height={11} borderRadius={4} style={{ marginTop: 6 }} />
+                                    </div>
+                                    <Skeleton width={56} height={28} borderRadius={6} />
+                                </div>
+                            ))}
+
+                            {/* sunrise / sunset skeleton */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <Skeleton height={64} borderRadius={12} />
+                                <Skeleton height={64} borderRadius={12} />
+                            </div>
+                        </>
                     )}
 
                     {!loading && error && (
@@ -396,5 +427,6 @@ export default function MosquePrayerTimesModal() {
             </div>
 
         </div>
+        </SkeletonTheme>
     );
 }

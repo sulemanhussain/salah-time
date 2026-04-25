@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
     FiActivity,
@@ -10,9 +11,38 @@ import {
     FiMapPin,
     FiTrendingUp,
 } from "react-icons/fi";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { SKELETON_THEME } from "../utils/skeleton-theme";
 import { getAuthCookie } from "../utils/auth-cookie";
 import { isVolunteer, getDisplayName } from "../utils/volunteer";
 import NavigationBar from "./NavigationBar";
+import { getTimingUpdates, type TimingUpdate, TimingUpdateStatus } from "../data/timing-updates";
+import { getTimingReportsByReporterId, type TimingReport, ReportStatus } from "../data/timing-reports";
+
+const PRAYER_NAMES: Record<number, string> = { 0: "Fajr", 1: "Dhuhr", 2: "Asr", 3: "Maghrib", 4: "Isha" };
+
+function relativeTime(dateStr: string | null | undefined): string {
+    if (!dateStr) return "";
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+    return new Date(dateStr).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+type ActivityItem = {
+    icon: React.ElementType;
+    color: string;
+    title: string;
+    detail: string;
+    time: string;
+    sortKey: number;
+};
 
 export default function Home() {
     const authUser = getAuthCookie();
@@ -21,25 +51,97 @@ export default function Home() {
         ? new Date(authUser.loggedInAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
         : "Recently";
 
+    const userId = authUser?.userId;
+
+    const [updates, setUpdates] = useState<TimingUpdate[]>([]);
+    const [reports, setReports] = useState<TimingReport[]>([]);
+    const [updatesThisWeek, setUpdatesThisWeek] = useState(0);
+    const [loading, setLoading] = useState(!!userId);
+
+    useEffect(() => {
+        if (!userId) return;
+        const weekCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        Promise.all([
+            getTimingUpdates(),
+            getTimingReportsByReporterId(userId),
+        ])
+            .then(([allUpdates, userReports]) => {
+                const userUpdates = allUpdates.filter(u => u.submittedBy === userId);
+                setUpdates(userUpdates);
+                setReports(userReports);
+                setUpdatesThisWeek(userUpdates.filter(u => u.createdDate && new Date(u.createdDate) >= weekCutoff).length);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [userId]);
+    const approvedCount = updates.filter(u => u.status === TimingUpdateStatus.Approved).length;
+    const resolvedCount = reports.filter(r => r.status === ReportStatus.Resolved).length;
+    const accuracy = updates.length > 0 ? Math.round((approvedCount / updates.length) * 100) : 0;
+
     const stats = [
-        { label: "Timings Updated",   value: 12, trend: "+3 this week",  icon: FiEdit3,       color: "from-teal-500 to-cyan-600",     bg: "bg-teal-50",    text: "text-teal-700"    },
-        { label: "Reports Submitted", value: 4,  trend: "1 resolved",    icon: FiAlertTriangle, color: "from-rose-500 to-pink-600",   bg: "bg-rose-50",    text: "text-rose-700"    },
-        { label: "Verified",          value: 9,  trend: "90% accuracy",  icon: FiCheckCircle,  color: "from-emerald-500 to-green-600", bg: "bg-emerald-50", text: "text-emerald-700" },
+        {
+            label: "Timings Updated",
+            value: loading ? "—" : updates.length,
+            trend: loading ? "" : `+${updatesThisWeek} this week`,
+            icon: FiEdit3,
+            color: "from-teal-500 to-cyan-600",
+            bg: "bg-teal-50",
+            text: "text-teal-700",
+        },
+        {
+            label: "Reports Submitted",
+            value: loading ? "—" : reports.length,
+            trend: loading ? "" : `${resolvedCount} resolved`,
+            icon: FiAlertTriangle,
+            color: "from-rose-500 to-pink-600",
+            bg: "bg-rose-50",
+            text: "text-rose-700",
+        },
+        {
+            label: "Verified",
+            value: loading ? "—" : approvedCount,
+            trend: loading ? "" : updates.length > 0 ? `${accuracy}% accuracy` : "None yet",
+            icon: FiCheckCircle,
+            color: "from-emerald-500 to-green-600",
+            bg: "bg-emerald-50",
+            text: "text-emerald-700",
+        },
     ];
 
-    const recentActivity = [
-        { icon: FiEdit3,        color: "bg-teal-100 text-teal-600",     title: "Masjid Noor — Fajr",   detail: "Updated congregation to 05:45 AM",  time: "2h ago"    },
-        { icon: FiAlertTriangle,color: "bg-rose-100 text-rose-600",     title: "Jamia Masjid — Dhuhr", detail: "Reported mismatch with noticeboard", time: "Yesterday" },
-        { icon: FiCheckCircle,  color: "bg-emerald-100 text-emerald-600", title: "Al Rahma — Isha",    detail: "Verified Aadhan and Jama'ah times",  time: "3 days ago" },
-    ];
+    const updateActivity: ActivityItem[] = updates.map(u => ({
+        icon: FiEdit3,
+        color: "bg-teal-100 text-teal-600",
+        title: `${u.mosqueDetails?.name ?? "Mosque"} — ${PRAYER_NAMES[u.prayer ?? 0] ?? "Prayer"}`,
+        detail: u.congregation
+            ? `Updated congregation to ${u.congregation}`
+            : u.aadhan
+            ? `Updated aadhan to ${u.aadhan}`
+            : "Timing updated",
+        time: relativeTime(u.createdDate),
+        sortKey: u.createdDate ? new Date(u.createdDate).getTime() : 0,
+    }));
+
+    const reportActivity: ActivityItem[] = reports.map(r => ({
+        icon: FiAlertTriangle,
+        color: "bg-rose-100 text-rose-600",
+        title: `${r.mosqueDetails?.name ?? "Mosque"} — Report`,
+        detail: r.details ?? "Timing report submitted",
+        time: relativeTime(r.createdDate),
+        sortKey: r.createdDate ? new Date(r.createdDate).getTime() : 0,
+    }));
+
+    const recentActivity = [...updateActivity, ...reportActivity]
+        .sort((a, b) => b.sortKey - a.sortKey)
+        .slice(0, 5);
 
     const suggestions = [
-        { icon: FiClock,       title: "Verify Friday Jumu'ah timing",  note: "Multiple users flagged outdated Friday schedules nearby." },
-        { icon: FiEdit3,       title: "Confirm Ramadan timetable",     note: "Seasonal times shift significantly — your update would help many." },
-        { icon: FiTrendingUp,  title: "Review high-traffic mosques",   note: "3 nearby mosques have unverified timings and are frequently visited." },
+        { icon: FiClock,      title: "Verify Friday Jumu'ah timing",  note: "Multiple users flagged outdated Friday schedules nearby." },
+        { icon: FiEdit3,      title: "Confirm Ramadan timetable",     note: "Seasonal times shift significantly — your update would help many." },
+        { icon: FiTrendingUp, title: "Review high-traffic mosques",   note: "3 nearby mosques have unverified timings and are frequently visited." },
     ];
 
     return (
+        <SkeletonTheme {...SKELETON_THEME}>
         <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-cyan-50 p-4 pb-24 sm:p-5">
             <div className="mx-auto max-w-2xl space-y-4">
 
@@ -107,14 +209,29 @@ export default function Home() {
                     <div className="grid grid-cols-3 divide-x divide-slate-100">
                         {stats.map((s) => (
                             <div key={s.label} className="flex flex-col items-center gap-1 px-2 py-4 text-center">
-                                <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${s.color} text-white shadow-sm`}>
-                                    <s.icon size={15} />
-                                </span>
-                                <p className="mt-1 text-3xl font-extrabold tabular-nums text-slate-800">{s.value}</p>
-                                <p className="text-[10px] font-semibold leading-tight text-slate-500">{s.label}</p>
-                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.bg} ${s.text}`}>
-                                    {s.trend}
-                                </span>
+                                {loading
+                                    ? <Skeleton width={36} height={36} borderRadius={12} />
+                                    : <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${s.color} text-white shadow-sm`}>
+                                        <s.icon size={15} />
+                                      </span>
+                                }
+                                {loading ? (
+                                    <>
+                                        <Skeleton width={32} height={36} borderRadius={6} />
+                                        <Skeleton width={56} height={10} borderRadius={4} />
+                                        <Skeleton width={64} height={18} borderRadius={999} />
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="mt-1 text-3xl font-extrabold tabular-nums text-slate-800">{s.value}</p>
+                                        <p className="text-[10px] font-semibold leading-tight text-slate-500">{s.label}</p>
+                                        {s.trend && (
+                                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.bg} ${s.text}`}>
+                                                {s.trend}
+                                            </span>
+                                        )}
+                                    </>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -134,18 +251,36 @@ export default function Home() {
                         </span>
                     </div>
                     <div className="divide-y divide-slate-50">
-                        {recentActivity.map((item) => (
-                            <div key={item.title} className="flex items-center gap-3 px-4 py-3.5">
-                                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-                                    <item.icon size={15} />
-                                </span>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800">{item.title}</p>
-                                    <p className="mt-0.5 truncate text-xs text-slate-500">{item.detail}</p>
-                                </div>
-                                <span className="shrink-0 text-[11px] text-slate-400">{item.time}</span>
+                        {loading ? (
+                            <div className="flex flex-col gap-3 px-4 py-4">
+                                {[0, 1, 2].map(i => (
+                                    <div key={i} className="flex items-center gap-3">
+                                        <Skeleton width={36} height={36} borderRadius={12} />
+                                        <div className="flex-1">
+                                            <Skeleton width="60%" height={13} borderRadius={4} />
+                                            <Skeleton width="40%" height={11} borderRadius={4} style={{ marginTop: 6 }} />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : recentActivity.length === 0 ? (
+                            <div className="px-4 py-8 text-center text-sm text-slate-400">
+                                No activity yet — start by updating a mosque's prayer times.
+                            </div>
+                        ) : (
+                            recentActivity.map((item, i) => (
+                                <div key={i} className="flex items-center gap-3 px-4 py-3.5">
+                                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+                                        <item.icon size={15} />
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-slate-800">{item.title}</p>
+                                        <p className="mt-0.5 truncate text-xs text-slate-500">{item.detail}</p>
+                                    </div>
+                                    <span className="shrink-0 text-[11px] text-slate-400">{item.time}</span>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -176,5 +311,6 @@ export default function Home() {
             </div>
             <NavigationBar />
         </div>
+        </SkeletonTheme>
     );
 }

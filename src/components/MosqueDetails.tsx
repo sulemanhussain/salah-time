@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import {
     FiAlertTriangle,
     FiClock,
     FiCompass,
-    FiEdit3,
+    FiRefreshCw,
     FiExternalLink,
     FiHeart,
     FiMapPin,
     FiUsers,
 } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
+import { SKELETON_THEME } from "../utils/skeleton-theme";
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
 import type { PrayerTime, HijriDate } from "../data/adaan-timings";
 import type { MapPlace } from "../data/Maps";
@@ -364,29 +367,36 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                     <h2 className='text-xl font-bold text-slate-900 sm:text-2xl'>Prayer Times</h2>
                                     <p className="mt-1 text-sm text-slate-600">Aadhan and congregation times for {place.name}.</p>
                                 </div>
-                                {hijriDate && (
-                                    <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold text-cyan-700 shadow-sm">
-                                        <FiClock size={11} className="shrink-0" />
-                                        {hijriDate.day} {hijriDate.month.en} {hijriDate.year} AH
-                                    </span>
-                                )}
+                                {isLoadingTimings
+                                    ? <Skeleton width={130} height={28} borderRadius={999} />
+                                    : hijriDate && (
+                                        <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold text-cyan-700 shadow-sm">
+                                            <FiClock size={11} className="shrink-0" />
+                                            {hijriDate.day} {hijriDate.month.en} {hijriDate.year} AH
+                                        </span>
+                                    )
+                                }
                             </div>
                         </div>
 
                         <div className='space-y-3 p-4 sm:p-5'>
                             {isLoadingTimings && (
-                                <div className="space-y-3 py-2">
-                                    {[1, 2, 3].map((placeholder) => (
-                                        <div key={placeholder} className="animate-pulse rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                                            <div className="h-4 w-24 rounded bg-slate-200"></div>
-                                            <div className="mt-3 grid grid-cols-2 gap-2">
-                                                <div className="h-12 rounded-lg bg-slate-200"></div>
-                                                <div className="h-12 rounded-lg bg-slate-200"></div>
+                                <SkeletonTheme {...SKELETON_THEME}>
+                                    <div className="space-y-3 py-2">
+                                        {[1, 2, 3, 4, 5].map((i) => (
+                                            <div key={i} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                                                <div className="mb-3 flex items-center justify-between">
+                                                    <Skeleton width={72} height={16} borderRadius={6} />
+                                                    <Skeleton width={48} height={22} borderRadius={999} />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <Skeleton height={56} borderRadius={12} />
+                                                    <Skeleton height={56} borderRadius={12} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                    <p className="text-center text-sm font-medium text-slate-500">Loading prayer times...</p>
-                                </div>
+                                        ))}
+                                    </div>
+                                </SkeletonTheme>
                             )}
 
                             {!isLoadingTimings && prayerRows.length > 0 && (
@@ -531,8 +541,8 @@ export default function MosqueDetails({ place }: { place: MapPlace }) {
                                 onClick={updateTimings}
                                 className='inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0'
                             >
-                                <FiEdit3 size={15} />
-                                Update Timings
+                                <FiRefreshCw size={15} />
+                                Sync Timings
                             </button>
                         )}
                         <button
