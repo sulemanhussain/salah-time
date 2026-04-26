@@ -1,5 +1,8 @@
 import { useEffect, useState, useTransition } from "react";
 import type { ReactNode } from "react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { SKELETON_THEME } from "../utils/skeleton-theme";
 import Modal from "./Modal";
 import { createPortal } from "react-dom";
 import { getPrayerTimings, formatPrayerTime, PRAYER_NAMES } from "../data/adaan-timings";
@@ -103,12 +106,17 @@ export default function InfoContainer({ place }) {
                 <div className="border-t border-gray-200"></div>
                 <div className="overflow-x-auto">
                   {isLoadingTimings ? (
-                    <div className="flex flex-col items-center justify-center py-8">
-                      <div className="mb-4">
-                        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                      </div>
-                      <p className="text-center text-gray-600 font-medium">Loading prayer times...</p>
-                    </div>
+                    <SkeletonTheme {...SKELETON_THEME}>
+                        <div className="space-y-2 py-2">
+                            {[0, 1, 2, 3, 4].map(i => (
+                                <div key={i} className="flex items-center gap-4 px-4 py-1">
+                                    <Skeleton width={72} height={14} borderRadius={4} />
+                                    <Skeleton width={56} height={14} borderRadius={4} />
+                                    <Skeleton width={56} height={14} borderRadius={4} />
+                                </div>
+                            ))}
+                        </div>
+                    </SkeletonTheme>
                   ) : prayerTimings ? (
                     <table className="w-full text-sm border-collapse">
                       <thead>

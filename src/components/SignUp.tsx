@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLock, FiMail, FiShield } from "react-icons/fi";
-import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { isAuthenticated, setAuthCookie } from "../utils/auth-cookie";
-import { loginUser } from "../data/users";
+import { registerUser, loginUser } from "../data/users";
 
-export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
+export default function SignUp() {
+  const [form, setForm] = useState({ email: "", password: "", confirm: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      navigate("/app", { replace: true });
-    }
+    if (isAuthenticated()) navigate("/app", { replace: true });
   }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,18 +23,19 @@ export default function Login() {
 
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match. Please try again.");
+      return;
+    }
     setError(null);
     setIsSubmitting(true);
     try {
+      await registerUser({ emailId: form.email, password: form.password });
       const result = await loginUser({ emailId: form.email, password: form.password });
-      if (!result.success) {
-        setError("Incorrect email or password. Please try again.");
-        return;
-      }
       setAuthCookie({ email: form.email, userId: result.userId, loggedInAt: new Date().toISOString() }, 7);
       navigate("/app", { replace: true });
     } catch {
-      setError("Unable to reach the server. Please check your connection and try again.");
+      setError("Unable to create your account. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -45,11 +44,11 @@ export default function Login() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-white flex items-center justify-center p-4">
 
-      {/* ── decorative top arc ── */}
+      {/* decorative top arc */}
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[480px] w-[680px] -translate-x-1/2 rounded-[50%] bg-gradient-to-br from-teal-500 via-cyan-500 to-sky-500 opacity-[0.09]" />
       <div className="pointer-events-none absolute -top-52 left-1/2 h-[420px] w-[560px] -translate-x-1/2 rounded-[50%] bg-gradient-to-br from-teal-400 to-cyan-500 opacity-[0.07]" />
 
-      {/* ── side accent dots ── */}
+      {/* side accent dots */}
       <div className="pointer-events-none absolute bottom-16 left-6 grid grid-cols-4 gap-2 opacity-[0.12]">
         {Array.from({ length: 24 }).map((_, i) => (
           <div key={i} className="h-1 w-1 rounded-full bg-teal-500" />
@@ -63,7 +62,7 @@ export default function Login() {
 
       <div className="relative w-full max-w-sm">
 
-        {/* ── brand ── */}
+        {/* brand */}
         <div className="mb-8 text-center">
           <div className="relative mx-auto mb-5 inline-flex">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-500 blur-lg opacity-40" />
@@ -77,19 +76,19 @@ export default function Login() {
           <p className="mt-1 text-sm text-slate-400">Your community prayer companion</p>
         </div>
 
-        {/* ── card ── */}
+        {/* card */}
         <div className="rounded-3xl border border-slate-100 bg-white px-6 py-7 shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05),0_24px_48px_-8px_rgba(13,148,136,0.1),0_0_0_1px_rgba(13,148,136,0.04)]">
 
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-slate-800">Welcome back 👋</h2>
-            <p className="mt-1 text-sm text-slate-400">Sign in to access prayer times near you</p>
+            <h2 className="text-xl font-bold text-slate-800">Create an account</h2>
+            <p className="mt-1 text-sm text-slate-400">Join the community and find prayer times near you</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* email — floating label */}
+            {/* email */}
             <div className="relative">
-              <FiMail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 transition peer-focus:text-teal-500" />
+              <FiMail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
               <input
                 id="email"
                 type="email"
@@ -108,7 +107,7 @@ export default function Login() {
               </label>
             </div>
 
-            {/* password — floating label */}
+            {/* password */}
             <div className="relative">
               <FiLock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
               <input
@@ -137,18 +136,33 @@ export default function Login() {
               </button>
             </div>
 
-            {/* remember + forgot */}
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex cursor-pointer items-center gap-2 text-slate-500 select-none">
-                <input type="checkbox" className="accent-teal-500" />
-                Remember me
-              </label>
-              <Link
-                to={`/forgot-password${form.email ? `?email=${encodeURIComponent(form.email)}` : ""}`}
-                className="font-semibold text-teal-600 transition hover:text-teal-500"
+            {/* confirm password */}
+            <div className="relative">
+              <FiLock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
+              <input
+                id="confirm"
+                type={showConfirm ? "text" : "password"}
+                name="confirm"
+                value={form.confirm}
+                onChange={handleChange}
+                placeholder=" "
+                className="peer h-14 w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-10 pr-11 pt-4 text-sm text-slate-800 outline-none transition placeholder-transparent focus:border-teal-400 focus:bg-white focus:ring-2 focus:ring-teal-100"
+                required
+              />
+              <label
+                htmlFor="confirm"
+                className="pointer-events-none absolute left-10 top-4 text-sm text-slate-400 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-semibold peer-focus:uppercase peer-focus:tracking-wider peer-focus:text-teal-500 peer-not-placeholder-shown:top-1.5 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-wider peer-not-placeholder-shown:text-slate-400"
               >
-                Forgot password?
-              </Link>
+                Confirm password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-300 transition hover:bg-slate-100 hover:text-teal-600"
+                aria-label={showConfirm ? "Hide password" : "Show password"}
+              >
+                {showConfirm ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
             </div>
 
             {error && (
@@ -164,45 +178,17 @@ export default function Login() {
               className="group relative h-12 w-full overflow-hidden rounded-xl bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(13,148,136,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-6px_rgba(13,148,136,0.5)] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
-                {isSubmitting ? "Signing in..." : "Sign In"}
+                {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
+                {isSubmitting ? "Creating account…" : "Create Account"}
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
             </button>
           </form>
 
-          {/* divider */}
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-slate-100" />
-            <span className="text-[11px] font-medium uppercase tracking-widest text-slate-300">or</span>
-            <div className="h-px flex-1 bg-slate-100" />
-          </div>
-
-          {/* social buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              className="group flex h-11 items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:translate-y-0 active:scale-95"
-            >
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 transition group-hover:bg-rose-50">
-                <FaGoogle size={11} className="text-slate-400 transition group-hover:text-rose-400" />
-              </span>
-              Google
-            </button>
-            <button
-              type="button"
-              className="group flex h-11 items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:translate-y-0 active:scale-95"
-            >
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 transition group-hover:bg-blue-50">
-                <FaFacebook size={12} className="text-slate-400 transition group-hover:text-blue-400" />
-              </span>
-              Facebook
-            </button>
-          </div>
-
           <p className="mt-5 text-center text-xs text-slate-400">
-            Don't have an account?{" "}
-            <Link to="/signup" className="font-semibold text-teal-600 transition hover:text-teal-500">
-              Sign up
+            Already have an account?{" "}
+            <Link to="/login" className="font-semibold text-teal-600 transition hover:text-teal-500">
+              Sign in
             </Link>
           </p>
         </div>

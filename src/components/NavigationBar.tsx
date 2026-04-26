@@ -1,18 +1,16 @@
 import { AiOutlineHome, AiFillHome } from 'react-icons/ai';
 import { MdOutlineLocationOn, MdLocationOn } from 'react-icons/md';
 import { IoSettingsOutline, IoSettings } from 'react-icons/io5';
-import { FiBell } from 'react-icons/fi';
-import { RiNotification3Fill } from 'react-icons/ri';
+import { FiHeart } from 'react-icons/fi';
+import { FaHeart } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
-
-const UNREAD_COUNT = 3;
 
 export default function NavigationBar() {
     const items = [
-        { to: "/home",          label: "Home",     Icon: AiOutlineHome,       IconActive: AiFillHome,          badge: 0            },
-        { to: "/app",           label: "Map",       Icon: MdOutlineLocationOn, IconActive: MdLocationOn,        badge: 0            },
-        { to: "/notifications", label: "Alerts",    Icon: FiBell,              IconActive: RiNotification3Fill, badge: UNREAD_COUNT },
-        { to: "/settings",      label: "Settings",  Icon: IoSettingsOutline,   IconActive: IoSettings,          badge: 0            },
+        { to: "/home",       label: "Home",      Icon: AiOutlineHome,       IconActive: AiFillHome,    badge: 0 },
+        { to: "/app",        label: "Map",        Icon: MdOutlineLocationOn, IconActive: MdLocationOn,  badge: 0 },
+        { to: "/favourites", label: "Favourites", Icon: FiHeart,             IconActive: FaHeart,       badge: 0 },
+        { to: "/settings",   label: "Settings",   Icon: IoSettingsOutline,   IconActive: IoSettings,    badge: 0 },
     ];
 
     return (

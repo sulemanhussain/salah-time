@@ -5,10 +5,16 @@ import MapContainer from './components/MapContainer';
 import NavigationBar from './components/NavigationBar';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
+import SignUp from './components/SignUp';
+import ForgotPassword from './components/ForgotPassword';
+import Favourites from './components/Favourites';
 import Home from './components/Home';
 import LocationServiceOff from './components/LocationServiceOff';
 import Notifications from './components/Notifications';
 import Settings from './components/Settings';
+import MosquePrayerTimesPage from './components/MosquePrayerTimesModal';
+import ProfilePage from './components/ProfileModal';
+import UpdateTimingsPage from './components/UpdateTimingsPage';
 import { isAuthenticated } from './utils/auth-cookie';
 import ErrorBoundary from './components/ErrorBoundary';
 import { FiCompass, FiMapPin } from 'react-icons/fi';
@@ -84,6 +90,12 @@ function App() {
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/login" element={<LoginRoute />} />
+        <Route path="/signup" element={isAuthenticated() ? <Navigate to="/app" replace /> : <SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/favourites" element={<ProtectedRoute><Favourites /></ProtectedRoute>} />
+        <Route path="/mosque-prayer-times" element={<ProtectedRoute><MosquePrayerTimesPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/update-timings" element={<ProtectedRoute><UpdateTimingsPage /></ProtectedRoute>} />
         <Route
           path="/home"
           element={
@@ -146,8 +158,6 @@ function App() {
                   )}
                   {geoStatus === 'error' && (
                     <>
-                      {/* <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
-                    <p className='text-sm text-red-500'>{geoError}</p> */}
                       <LocationServiceOff />
                     </>
                   )}
