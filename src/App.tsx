@@ -158,8 +158,6 @@ function App() {
                   )}
                   {geoStatus === 'error' && (
                     <>
-                      {/* <p className='text-xl font-semibold mb-2 text-red-600'>Location Error</p>
-                    <p className='text-sm text-red-500'>{geoError}</p> */}
                       <LocationServiceOff />
                     </>
                   )}
